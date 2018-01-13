@@ -19,12 +19,6 @@ bot.on('ready', () => {
 
 bot.on('message', message => {
 	
-	if (message.author.bot) return;
-	
-	if (message.channel.type === "dm"){
-		checkUjinMessage(message);
-	}
-	
 	
 	if (message.channel != botpost) return;
 	
@@ -150,6 +144,15 @@ bot.on('message', message => {
 	if(message.content == ']waifus'){
 		sendMessage(botpost, waifu.getInventory(message.author));
 	}
+	
+	if (message.author.id === config.ujinbotID){
+		checkUjinMessage(message);
+	}
+	
+	if(message.content == "].send"){
+		sendMessage(botpost, ".give 10 meeseeks#1229");
+	}
+	
 });
 
 function sendMessage(channel, message){
@@ -253,7 +256,11 @@ function poorest(message){
 }
 
 function checkUjinMessage(message){
-	console.log(message.content);
+	console.log(message.embeds[0].description);
+	
+	if(message.embeds[0].description.endsWith("**kinokoMK2#3258**")){
+		
+	}
 }
 
 function update(){
