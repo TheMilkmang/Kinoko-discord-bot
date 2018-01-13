@@ -14,41 +14,27 @@ const bot = new Discord.Client();
 
 bot.on('ready', () => {
 	console.log('I am ready!');
-	botpost = bot.channels.get("231252749218611200");
+	botpost = bot.channels.get(config.botPostID);
 });
 
 bot.on('message', message => {
-	if(message.channel.type == 'text'){
-		var botRole = message.guild.roles.find('name', 'Bot');
-	}
-
+	
 	if (message.author.bot) return;
-	if(message.member){
-		if (message.member.roles.has(botRole.id)) return;
+	
+	if (message.channel.type === "dm" && message.author.id == config.ujinbotID){
+		checkUjinMessage(message);
 	}
 	
-	if(message.content == ']unmute') {
-		unmuteChan(message);
-	}
 	
-	for(i = 0; i < config.mutedChannels.length; i++){
-		if(config.mutedChannels[i] == message.channel.name){
-			if(message.content != ']unmute'){
-				return;
-			}
-		}
-	}
+	if (message.channel != botpost) return;
 	
-	if( message.content == ']mute') {
-		muteChan(message);
-	}
 	
 	if (message.content == ']test') {
 		sendMessage(message.channel, 'toast');
 	}
 	
 	if(message.content == ']help') {
-		sendMessage(message.channel, "Here's my documentation, officer. <https://pastebin.com/tqYe1KrX>");
+		sendMessage(message.channel, "Here's my documentation, officer. <https://github.com/meeseekms/Kinoko-discord-bot/blob/master/README.md>");
 	}
 	
 	if(message.content.startsWith(']addMethod ')) {
@@ -68,7 +54,9 @@ bot.on('message', message => {
 	}
 	
 	if(message.content.startsWith(']mushies') || message.content == ']m'){
+		
 		var balance = bank.getBalanceUser(message.author);
+		
 		if(message.mentions.users.first()){
 			balance = bank.getBalanceUser(message.mentions.users.first());
 			sendMessage(message.channel, message.mentions.users.first().username + " has " + balance + config.currency);
@@ -79,99 +67,27 @@ bot.on('message', message => {
 	}
 	
 	if(message.content.startsWith(']send ')){
-		var fromUser = message.author;
-		var array = message.content.split(' ');
-	
-		if(array.length != 3) return;
-		if(array[1].startsWith('<@')) return;
-	
-		if(!message.mentions.users.first()){
-			console.log("no mention");
-			return;
-		}else{ 
-			var toUser = message.mentions.users.first();
-		}
-		
-		var amount = parseInt(array[1]);
-		if(amount >= 0){}else return;
-		
-		if(bank.sendMushies(fromUser, toUser, amount)){
-			sendMessage(message.channel, fromUser.username + " sent " + amount + config.currency + " to " + toUser.username);
-		}
+		sendMushies(message);
 	}
 	
 	if(message.content.startsWith(']work') || message.content == ']w'){
-		sendMessage(message.channel, work.mushiesWork(message.author, bank));
+		sendMessage(message.channel, work.mushiesWork(message.author));
 	}
 	
 	if(message.content.startsWith(']top')){
-		var args = message.content.split(' ');
-		var amount = 5;
-		if(args.length == 2){
-			amount = parseInt(args[1]);
-			if(!amount){
-				amount = 5;
-			}
-		}
-		var array = work.topWorkers(bank, amount);
-		var namesText = "";
-		
-		for(i = 0; i<array.length; i++){
-			namesText = namesText + '\n' + (i+1) + ') ' + array[i].name + "  --- " + array[i].totalWorked + config.currency;
-		}
-		sendMessage(message.channel, "Here are what the best workers have earned for the kingdom. Aspire to be like them!" + namesText);
+		topWorkers(message);
 	}
 	
 	if(message.content.startsWith(']laziest')){
-		var args = message.content.split(' ');
-		var amount = 5;
-		if(args.length == 2){
-			amount = parseInt(args[1]);
-			if(!amount){
-				amount = 5;
-			}
-		}
-		var array = work.laziestWorkers(bank, amount);
-		var namesText = "";
-		
-		for(i = 0; i < array.length; i++){
-			namesText = namesText + '\n' + (i+1) + ') ' + array[i].name + "  --- " + array[i].totalWorked + config.currency;
-		}
-		sendMessage(message.channel, "Here are the laziest workers. *Encourage* them to work harder!" + namesText);
+		leastWorked(message);
 	}
-	
+
 	if(message.content.startsWith(']greediest')){
-		var args = message.content.split(' ');
-		var amount = 5;
-		if(args.length == 2){
-			amount = parseInt(args[1]);
-			if(!amount){
-				amount = 5;
-			}
-		}
-		var array = bank.getRichest(amount);
-		var namesText = "";
-		for(i = 0; i<array.length; i++){
-			namesText = namesText + '\n' + (i+1) + ') ' + array[i].name + "  --- " + array[i].balance + config.currency;
-		}		
-		sendMessage(message.channel, "Here are the richest workers. Tell them to share!" + namesText);
+		greediest(message);
 	}
-	
+
 	if(message.content.startsWith(']poorest')){
-		var args = message.content.split(' ');
-		var amount = 5;
-		if(args.length == 2){
-			amount = parseInt(args[1]);
-			if(!amount){
-				amount = 5;
-			}
-		}
-		var array = bank.getPoorest(amount);
-		var namesText = "";
-		for(i = 0; i<array.length; i++){
-			namesText = namesText + '\n' + (i+1) + ') ' + array[i].name + "  --- " + array[i].balance + config.currency;
-		}		
-		sendMessage(message.channel, "Here are the poorest workers. Share with your comrades!" + namesText);
+		
 	}
 		
 	if(message.content.startsWith(']totalWorked')){
@@ -201,7 +117,7 @@ bot.on('message', message => {
 				choice -= 1;
 			}else return;
 		}
-		sendMessage(message.channel, work.harvest(message.author, bank, choice));
+		sendMessage(message.channel, work.harvest(message.author, choice));
 	}
 	
 	if(message.content == ']bomb'){
@@ -243,26 +159,101 @@ function sendMessage(channel, message){
 	}
 }
 
-function muteChan(message){
-	this.modRole = message.guild.roles.find('name', 'Discord Mods');
-	this.smolRole = message.guild.roles.find('name', 'Smol Mods');
-	
-	if( message.member.roles.has(this.modRole.id) || message.member.roles.has(this.smolRole.id) || message.author.username == "meeseeks") {
-		config.mutedChannels.push(message.channel.name);
-		save.jsonSave(config, 'config.json');
-		message.channel.send("Ok, I won't speak in this channel anymore.");
+function sendMushies(message){
+	var fromUser = message.author;
+	var array = message.content.split(' ');
+
+	if(array.length != 3) return;
+	if(array[1].startsWith('<@')) return;
+
+	if(!message.mentions.users.first()){
+		console.log("no mention");
+		return;
+	}else{ 
+		var toUser = message.mentions.users.first();
+	}
+
+	var amount = parseInt(array[1]);
+	if(amount >= 0){}else return;
+
+	if(bank.sendMushies(fromUser, toUser, amount)){
+		sendMessage(message.channel, fromUser.username + " sent " + amount + config.currency + " to " + toUser.username);
 	}
 }
 
-function unmuteChan(message){
-	this.modRole = message.guild.roles.find('name', 'Discord Mods');
-	this.smolRole = message.guild.roles.find('name', 'Smol Mods');
-	
-	if( message.member.roles.has(this.modRole.id) || message.member.roles.has(this.smolRole.id) || message.author.username == "meeseeks") {
-		config.mutedChannels.splice(i, 1);
-		save.jsonSave(config, 'config.json');
-		message.channel.send("*gasps for air* \nFinally!");
+function topWorkers(message){
+	var args = message.content.split(' ');
+	var amount = 5;
+	if(args.length == 2){
+		amount = parseInt(args[1]);
+		if(!amount){
+			amount = 5;
+		}
 	}
+	var array = work.topWorkers(amount);
+	var namesText = "";
+
+	for(i = 0; i<array.length; i++){
+		namesText = namesText + '\n' + (i+1) + ') ' + array[i].name + "  --- " + array[i].totalWorked + config.currency;
+	}
+	
+	sendMessage(message.channel, "Here are what the best workers have earned for the kingdom. Aspire to be like them!" + namesText);
+}
+
+function leastWorked(message){
+	var args = message.content.split(' ');
+	var amount = 5;
+	if(args.length == 2){
+		amount = parseInt(args[1]);
+		if(!amount){
+			amount = 5;
+		}
+	}
+	var array = work.laziestWorkers(amount);
+	var namesText = "";
+
+	for(i = 0; i < array.length; i++){
+		namesText = namesText + '\n' + (i+1) + ') ' + array[i].name + "  --- " + array[i].totalWorked + config.currency;
+	}
+	sendMessage(message.channel, "Here are the laziest workers. *Encourage* them to work harder!" + namesText);
+}
+
+function greediest(message){
+	var args = message.content.split(' ');
+	var amount = 5;
+	if(args.length == 2){
+		amount = parseInt(args[1]);
+		if(!amount){
+			amount = 5;
+		}
+	}
+	var array = bank.getRichest(amount);
+	var namesText = "";
+	for(i = 0; i<array.length; i++){
+		namesText = namesText + '\n' + (i+1) + ') ' + array[i].name + "  --- " + array[i].balance + config.currency;
+	}		
+	sendMessage(message.channel, "Here are the richest workers. Tell them to share!" + namesText);
+}
+
+function poorest(message){
+	var args = message.content.split(' ');
+	var amount = 5;
+	if(args.length == 2){
+		amount = parseInt(args[1]);
+		if(!amount){
+			amount = 5;
+		}
+	}
+	var array = bank.getPoorest(amount);
+	var namesText = "";
+	for(i = 0; i<array.length; i++){
+		namesText = namesText + '\n' + (i+1) + ') ' + array[i].name + "  --- " + array[i].balance + config.currency;
+	}		
+	sendMessage(message.channel, "Here are the poorest workers. Share with your comrades!" + namesText);
+}
+
+function checkUjinMessage(message){
+	console.log(message.content);
 }
 
 function update(){
