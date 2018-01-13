@@ -21,7 +21,7 @@ bot.on('message', message => {
 	
 	if (message.author.bot) return;
 	
-	if (message.channel.type === "dm" && message.author.id == config.ujinbotID){
+	if (message.channel.type === "dm"){
 		checkUjinMessage(message);
 	}
 	
