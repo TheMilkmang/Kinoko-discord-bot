@@ -30,7 +30,7 @@ exports.mushiesWork = function(user){
 	var amount = Math.ceil(Math.random() * config.workMax);
 	if(bank.canWorkTimeLeft(user)<0){
 		bank.mushiesAddEveryone(amount*config.percentage);
-		bank.addBalanceUser(amount - amount*config.percentage);
+		bank.addBalanceUser(user, amount - amount*config.percentage);
 		bank.addTotalWorkedUser(user, amount);
 		bank.setWorkTimerUser(user, config.workDelay);
 		

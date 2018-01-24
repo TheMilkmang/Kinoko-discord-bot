@@ -1,6 +1,6 @@
+# Kinoko-discord-bot
+
 ]help		links this or w/e
-]mute		mutes the bot in the current channel. mods only.
-]unmute		unmutes teh bot in the current channel. mods only.
 
 ---------------------------
 ]kms		attempts suicide.
@@ -23,6 +23,10 @@
 
 ]bf # <t/h>				Coin flip with a bet of #, for it to land on tails or heads.
 ]bf ALL <t/h>			Bets all and gives a slight bonus for risking it all
+]balloon				Gives information on the current balloon. When it pops the last person owning it wins the prize pool!
+]buyballoon				Buys the balloon
+]bomb					Gives information about the current bomb. When somebody buys it the money goes to the last person and the price increases!
+]buybomb				Buys the bomb for the current price
 
 ]work					Generates a random amount of mushies for everyone with an account. YOU control production.
 ]w
@@ -35,3 +39,9 @@
 ]population				How many people have used these mushroom commands at least once
 
 ---------------------------------
+
+#UjinBot command#
+.give # @kinoko			Deposits a certain amount of pretzels/flowers to the bank of kinoko
+
+]withdraw #				Withdraws an amount of pretzels/flowers from the bank of kinoko
+

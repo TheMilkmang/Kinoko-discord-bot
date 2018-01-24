@@ -55,7 +55,6 @@ exports.betFlipAll = function(message, bank){
 	}else{return;}
 	
 	var userBalance = bank.getBalanceUser(message.author);
-	console.log("test");
 	console.log(userBalance);
 	
 	if(userBalance > 0){
