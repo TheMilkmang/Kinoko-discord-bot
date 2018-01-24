@@ -4,7 +4,7 @@ var allBonus = 0.25;
 
 exports.betFlip = function(message, bank){
 	var flip = Math.random();
-	if(flip>0.5){ 
+	if(flip>=0.5){ 
 		flip = 'h';
 		var coin = ':clown: **HEADS**';
 	}else{
@@ -39,7 +39,7 @@ exports.betFlip = function(message, bank){
 
 exports.betFlipAll = function(message, bank){
 	var flip = Math.random();
-	if(flip>0.5){ 
+	if(flip>=0.5){ 
 		flip = 'h';
 		var coin = ':clown: **HEADS**';
 	}else{
