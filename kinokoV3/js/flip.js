@@ -2,15 +2,21 @@ var config = require('../json/config.json');
 
 var allBonus = 0.25;
 
+function flip(){
+		var flip = Math.random();
+		var coin;
+		if(flip>=0.5){ 
+			flip = 'h';
+			coin = ':clown: **HEADS**';
+		}else{
+			flip = 't';
+			coin = ':bat: **TAILS**';
+			}
+		return coin;
+}
+
 exports.betFlip = function(message, bank){
-	var flip = Math.random();
-	if(flip>0.5){ 
-		flip = 'h';
-		var coin = ':clown: **HEADS**';
-	}else{
-		flip = 't';
-		var coin = ':bat: **TAILS**';
-	}
+	var coin = flip();
 	
 	var array = message.content.split(' ');
 	if(array.length != 3) return;
@@ -38,14 +44,7 @@ exports.betFlip = function(message, bank){
 };
 
 exports.betFlipAll = function(message, bank){
-	var flip = Math.random();
-	if(flip>0.5){ 
-		flip = 'h';
-		var coin = ':clown: **HEADS**';
-	}else{
-		flip = 't';
-		var coin = ':bat: **TAILS**';
-	}
+	var coin = flip();
 	
 	var array = message.content.split(' ');
 	if(array.length != 3) return;
@@ -55,6 +54,7 @@ exports.betFlipAll = function(message, bank){
 	}else{return;}
 	
 	var userBalance = bank.getBalanceUser(message.author);
+	console.log("test");
 	console.log(userBalance);
 	
 	if(userBalance > 0){
