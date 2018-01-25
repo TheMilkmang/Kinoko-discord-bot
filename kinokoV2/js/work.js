@@ -1,7 +1,8 @@
+var bank = require('./bank.js');
 var config = require('../json/config.json');
 var emoji = require('../json/emoji.json');
 
-function worked(user, bank, amount, percentage, delay){
+function worked(user, amount, percentage, delay){
 	bank.mushiesAddEveryone(amount*percentage);
 	bank.addBalanceUser(user, (amount - amount*percentage) );
 	bank.addTotalWorkedUser(user, amount);
@@ -25,11 +26,11 @@ function newHarvest(user, choices, rewardMax){
 	return returned;		
 }
 
-exports.mushiesWork = function(user, bank){
+exports.mushiesWork = function(user){
 	var amount = Math.ceil(Math.random() * config.workMax);
 	if(bank.canWorkTimeLeft(user)<0){
 		bank.mushiesAddEveryone(amount*config.percentage);
-		bank.addBalanceUser(amount - amount*config.percentage);
+		bank.addBalanceUser(user, amount - amount*config.percentage);
 		bank.addTotalWorkedUser(user, amount);
 		bank.setWorkTimerUser(user, config.workDelay);
 		
@@ -41,7 +42,7 @@ exports.mushiesWork = function(user, bank){
 	
 };
 
-exports.topWorkers = function(bank, amount){
+exports.topWorkers = function(amount){
 	amount = Math.min(20, amount, bank.getBank().length); //max size of 10, and not bigger than the amount of people
 	var returned = [];
 	var array = [];
@@ -61,7 +62,7 @@ exports.topWorkers = function(bank, amount){
 	return returned;
 };
 
-exports.laziestWorkers = function(bank, amount){
+exports.laziestWorkers = function(amount){
 	amount = Math.min(20, amount, bank.getBank().length); //max size of 10, and not bigger than the amount of people
 	var returned = [];
 	var array = [];
@@ -81,7 +82,7 @@ exports.laziestWorkers = function(bank, amount){
 	return returned;
 };
 
-exports.harvest = function(user, bank, choice){	
+exports.harvest = function(user, choice){	
 	if(bank.canWorkTimeLeft(user) > 0){
 		return(user.username + " slow down comrade, you'll exhaust yourself! You can work again in " + bank.canWorkTimeLeft(user)/60000 + " minutes.");
 	}
@@ -92,7 +93,7 @@ exports.harvest = function(user, bank, choice){
 			var reward = user.harvestEmojis[choice].reward;
 			var returned = '';
 			
-			worked(user, bank, reward, config.percentage, config.harvestDelay);
+			worked(user, reward, config.percentage, config.harvestDelay);
 			
 			for(i = 0; i < user.harvestEmojis.length; i++){
 				if(choice == i){

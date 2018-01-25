@@ -7,7 +7,7 @@ exports.getBank = function(){
 };
 
 function bankFindByID(ID){
-	for(i = 0; i<bank.length; i++){
+	for(var i = 0; i<bank.length; i++){
 		if(bank[i].id === ID){
 			return bank[i];
 		}
@@ -66,6 +66,7 @@ exports.getPopulation = function(){
 exports.getBalanceUser = function(user){
 	var worker = bankFindByUser(user);
 	worker.balance = Math.round(worker.balance);
+	worker.username = user.username;
 	return worker.balance;
 };
 
@@ -112,7 +113,7 @@ exports.sendMushies = function(fromUser, toUser, amount){
 };
 
 exports.mushiesAddEveryone = function(amount){
-	for(i=0; i<bank.length; i++) {
+	for(var i=0; i<bank.length; i++) {
 		bank[i].balance += amount;
 	}
 	save.jsonSave(bank, 'bank.json');
@@ -123,7 +124,7 @@ exports.getPoorest = function(amount){
 	var returned = [];
 	var array = [];
 	
-	for(i = 0; i < bank.length; i++){
+	for(var i = 0; i < bank.length; i++){
 		bank[i].balance = Math.round(bank[i].balance);
 		array.push(bank[i]);
 	}
@@ -132,7 +133,7 @@ exports.getPoorest = function(amount){
 		return a.balance - b.balance;
 	}
 	array.sort(compare);
-	for(i = 0; i < amount; i++){
+	for(var i = 0; i < amount; i++){
 		returned[i] = array[i];
 	}
 	return returned;
@@ -143,7 +144,7 @@ exports.getRichest = function(amount){
 	var returned = [];
 	var array = [];
 	
-	for(i = 0; i < bank.length; i++){
+	for(var i = 0; i < bank.length; i++){
 		bank[i].balance = Math.round(bank[i].balance);
 		array.push(bank[i]);
 	}
@@ -152,8 +153,79 @@ exports.getRichest = function(amount){
 		return b.balance - a.balance;
 	}
 	array.sort(compare);
-	for(i = 0; i < amount; i++){
+	for(var i = 0; i < amount; i++){
 		returned[i] = array[i];
 	}
 	return returned;
+};
+
+//inventory
+
+
+function checkInvExists(user){
+	var worker = bankFindByUser(user);
+	
+	if(!worker.hasOwnProperty('inventory')){
+		worker.inventory = [];
+	}
+}
+
+function invHasItem(user, item){
+	var worker = bankFindByUser(user);
+	
+	checkInvExists(user);
+	
+	for(var i = 0; i < worker.inventory.length; i++){
+		if(worker.inventory[i].name === item){
+			return i;
+		}
+	}
+	
+	return -1;
+	
+}
+
+exports.addItemUser = function(user, item, amount){
+	var worker = bankFindByUser(user);
+	var invIndex = invHasItem(user, item);
+	amount = Math.floor(amount);
+	
+	if(invIndex >= 0){
+		worker.inventory[invIndex].amount += amount;
+	}else{
+		var index = worker.inventory.length;
+		worker.inventory[index] = {name: item, amount: amount};
+	}
+	
+	save.jsonSave(bank, 'bank.json');
+	
+	return true;
+};
+
+exports.subtractItemUser = function(user, item, amount){
+	var worker = bankFindByUser(user);
+	var invIndex = invHasItem(user, item);
+	amount = Math.floor(amount);
+	
+	if(invIndex >= 0){
+		
+		if(worker.inventory[invIndex].amount >= amount){
+			worker.inventory[invIndex].amount -= amount;
+			save.jsonSave(bank, 'bank.json');
+			return true;
+		}
+		
+	}
+		
+	return false;
+};
+
+exports.getItemBalanceUser = function(user, item){
+	var worker = bankFindByUser(user);
+	var invIndex = invHasItem(user, item);
+	
+	if(invIndex >= 0){
+		return worker.inventory[invIndex].amount;
+	}
+	return 0;
 };
