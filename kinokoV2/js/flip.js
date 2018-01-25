@@ -7,20 +7,15 @@ function flipCoin(){
 		var coin;
 		
 		if(flip>=0.5){ 
-			flip = 'h';
-			coin = ':clown: **HEADS**';
+			coin = ['h',':clown: **HEADS**'];
 		}else{
-			flip = 't';
-			coin = ':bat: **TAILS**';
+			coin = ['t',':bat: **TAILS**'];
 			}
-		var obj = {flip: flip, coin: coin};
-		return obj;
+		return coin;
 }
 
 exports.betFlip = function(message, bank){
-	var obj = flipCoin();
-	var flip = obj.flip;
-	var coin = obj.coin;
+	var coin = flipCoin();
 	
 	var array = message.content.split(' ');
 	if(array.length != 3) return;
@@ -34,12 +29,12 @@ exports.betFlip = function(message, bank){
 	}
 	
 	if(bank.getBalanceUser(message.author) >= bet){
-		if(choice == flip){
+		if(choice == coin[0]){
 			bank.addBalanceUser(message.author, bet);
-			return(coin + " You won " + bet + config.currency + "!");
+			return(coin[1] + " You won " + bet + config.currency + "!");
 		}else{
 			bank.subtractBalanceUser(message.author, bet);
-			return(coin + " Aww, better luck next time! You lost a whole " + bet + config.currency);
+			return(coin[1] + " Aww, better luck next time! You lost a whole " + bet + config.currency);
 		}
 	}else{
 		return("Nibba, you don't have that much!");
@@ -48,9 +43,7 @@ exports.betFlip = function(message, bank){
 };
 
 exports.betFlipAll = function(message, bank){
-	var obj = flipCoin();
-	var flip = obj.flip;
-	var coin = obj.coin;
+	var coin = flipCoin();
 	
 	var array = message.content.split(' ');
 	if(array.length != 3) return;
@@ -64,12 +57,12 @@ exports.betFlipAll = function(message, bank){
 	console.log(userBalance);
 	
 	if(userBalance > 0){
-		if(choice == flip){
+		if(choice == coin[0]){
 			bank.addBalanceUser(message.author, userBalance+(userBalance*allBonus));
-			return(coin + " Wow! You went all in and won " + userBalance + config.currency + "! You also got an extra " + (allBonus*100) + "% bonus of " + (userBalance*allBonus) + config.currency);
+			return(coin[1] + " Wow! You went all in and won " + userBalance + config.currency + "! You also got an extra " + (allBonus*100) + "% bonus of " + (userBalance*allBonus) + config.currency);
 		}else{
 			bank.subtractBalanceUser(message.author, userBalance);
-			return(coin + " You lost it all, loser. A whole " + userBalance + config.currency);
+			return(coin[1] + " You lost it all, loser. A whole " + userBalance + config.currency);
 		}
 	}else{
 		return("Nibba, you don't have that much!");
