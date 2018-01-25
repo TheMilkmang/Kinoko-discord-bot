@@ -17,12 +17,19 @@ function createBalloon(bank, channel, price, timer){
 }
 
 function pop(bank, channel){
+	var d = new Date();
+	var timeLeft = balloon.explodeTime - d.getTime();
+	if(timeLeft > 0){
+		setTimeout(pop, timeLeft, bank, channel);
+		return false;
+	}
 	balloon.alive = 0;
 	
 	if(balloon.owner){
 		bank.addBalanceUser(balloon.owner, balloon.prize);
 		channel.send(":balloon: The balloon popped! " + balloon.owner + " won " + balloon.prize + config.currency + "!"); 
 	}
+	return true;
 }
 
 function checkBalloon(bank){
@@ -53,12 +60,20 @@ exports.printBalloon = function(bank){
 }
 
 exports.buyBalloon = function(bank, channel, newOwner){
+	var d = new Date();
+	
 	if(balloon.alive){
+		if(balloon.owner == newOwner){
+			return(":balloon: You already own the balloon nibba");
+		}
+		
 		if(bank.getBalanceUser(newOwner) >= balloon.price){
 			bank.subtractBalanceUser(newOwner, balloon.price);
+			var oldOwner = balloon.owner;
 			balloon.owner = newOwner;
 			balloon.prize += balloon.price;
-			return(":balloon: You bought the balloon for " + balloon.price + config.currency + "! The prize is now " + balloon.prize + config.currency);
+			balloon.explodeTime += 60000;
+			return(":balloon: " + oldOwner + " The balloon was bought from you by " + newOwner.username + "! The prize is now " + balloon.prize + config.currency + " And one minute has been added to the timer! It pops in this many minutes: " + ((balloon.explodeTime - d.getTime() ) / 60000));
 		}else return ":balloon: Broke ass nibba";
 	}else{
 		if(bank.getBalanceUser(newOwner) >= initPrice){

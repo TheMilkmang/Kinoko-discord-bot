@@ -1,1 +1,2 @@
-{"token":"","currency":":mushroom:","fullCommunism":"<:FULLCOMMUNISM:268462018015657984>","percentage":0.5,"workDelay":60000,"workMax":20,"harvestDelay":120000,"harvestMax":40,"harvestChoices":4,"mutedChannels":["general"]}
+{"token":"","currency":":mushroom:","fullCommunism":"<:FULLCOMMUNISM:268462018015657984>","percentage":0.5,"workDelay":300000,"workMax":100,"harvestDelay":1800000,"harvestMax":400,"harvestChoices":4,"mutedChannels":["general"],"botPostID":"231252749218611200","ujinbotID":"361540375443275777","ujinCurrency":"<:pretzel:363385221976162304>"}
+
