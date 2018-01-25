@@ -2,9 +2,10 @@ var config = require('../json/config.json');
 
 var allBonus = 0.25;
 
-function flip(){
+function flipCoin(){
 		var flip = Math.random();
 		var coin;
+		
 		if(flip>=0.5){ 
 			flip = 'h';
 			coin = ':clown: **HEADS**';
@@ -12,11 +13,14 @@ function flip(){
 			flip = 't';
 			coin = ':bat: **TAILS**';
 			}
-		return coin;
+		var obj = {flip: flip, coin: coin};
+		return obj;
 }
 
 exports.betFlip = function(message, bank){
-	var coin = flip();
+	var obj = flipCoin();
+	var flip = obj.flip;
+	var coin = obj.coin;
 	
 	var array = message.content.split(' ');
 	if(array.length != 3) return;
@@ -44,7 +48,9 @@ exports.betFlip = function(message, bank){
 };
 
 exports.betFlipAll = function(message, bank){
-	var coin = flip();
+	var obj = flipCoin();
+	var flip = obj.flip;
+	var coin = obj.coin;
 	
 	var array = message.content.split(' ');
 	if(array.length != 3) return;
