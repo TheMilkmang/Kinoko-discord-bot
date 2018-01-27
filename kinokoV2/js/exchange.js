@@ -18,109 +18,123 @@ function saveExchange(){
 	save.jsonSave(exchange, 'exchange.json');
 }
 
-exports.createSellOrder = function(user, item, quantity, price){
-	price = Math.floor(price);
-	if(price <= 0) return false;
+function checkOrders(){
 	
-	quantity = Math.floor(quantity);
-	if(quantity <= 0) return false;
-	
-	if(bank.getItemBalanceUser(user, item) < quantity) return false;
-	
-	bank.subtractItemUser(user, item, quantity);
-	
-	var index = sellOrders.push( {item: item, quantity: quantity, price: price, userID: user.id, username: user.username} ) - 1;
-	checkSellOrder(index);
-	saveExchange();
-	return true;
-};
-
-function checkSellOrder(index){
-	var quantity = sellOrders[index].quantity;
-	
-	
-	if(buyOrders.length == 0){
-		console.log("Sell order accepted. No buy orders. ");
+	if(sellOrders.length == 0 || buyOrders.length == 0){
+		console.log("Buy or sell order length is 0");
 		return;
 	}
 	
-	for(var i = 0; i < buyOrders.length; i++){
-		if(buyOrders[i].item != sellOrders[index].item) continue;
-			
-		if(buyOrders[i].price < sellOrders[index].price) continue;
-				
-		if(buyOrders[i].quantity == sellOrders[index].quantity){
-			fillSellOrder(index, quantity);
-			fillBuyOrder(i, quantity);
-			
-			console.log("both orders filled completely");
-			return;
-		}
+	for(var i = 0; i < sellOrders.length; i++){
 		
-		if(buyOrders[i].quantity > sellOrders[index].quantity){
-			fillBuyOrder(i, quantity);
-			fillSellOrder(index, quantity);
+		for(var j = 0; j < buyOrders.length; j++){
+			var price;
+			var quantity;
 			
-			console.log("sell order filled fully");
-			return;
-		}
-		console.log("sell i is: " + i);
-		if(buyOrders[i].quantity < sellOrders[index].quantity){
-			var amount = buyOrders[i].quantity;
-			fillSellOrder(index, amount);
-			fillBuyOrder(i, amount);
+			if(sellOrders[i].item != buyOrders[j].item){
+				console.log("Wrong item type " + sellOrders[i].item + ", " + buyOrders[j].item);
+				
+				continue;
+			}
+			
+			if(sellOrders[i].price > buyOrders[j].price){
+				console.log("Sell price higher than buy price, no deal.");
+				
+				continue;
+			}
+			
+			if(sellOrders[i].quantity == buyOrders[j].quantity){
+				
+				console.log("Quantity matches exactly!\nsell: " + sellOrders[i] + "\nbuy: " + buyOrders[j]);
+				
+				price = sellOrders[i].price;
+				quantity = sellOrders[i].quantity;
+				
+			}else if(sellOrders[i].quantity > buyOrders[j].quantity){
+				
+				console.log("More sell orders than buy.\nsell: " + sellOrders[i] + "\nbuy: " + buyOrders[j]);
+				
+				price = sellOrders[i].price;
+				quantity = buyOrders[j].quantity;
+				
+			}else if(sellOrders[i].quantity < buyOrders[j].quantity){
+				
+				console.log("More buy orders than sell.\nsell: " + sellOrders[i] + "\nbuy: " + buyOrders[j]);
+				
+				price = sellOrders[i].price;
+				quantity = sellOrders[i].quantity;
 
-			console.log("sell order filled partially. Continuing...");
-			if(buyOrders.length == 0) return;
-			checkSellOrder(index);
+			}
+			
+			fillSellOrder(i, quantity);
+			fillBuyOrder(j, quantity, price);
+
+			checkOrders();
+			return;
+
 		}
 		
 	}
 	
+	
 }
-
-function recordOrder(order, amount, type){
+					
+function recordOrder(order, amount){
 	order.quantity = amount;
-	order.type = type;
 	filledOrders.unshift(order);
+	console.log("order recorded:\n" + order);
 	saveExchange();
 }
 
 function fillSellOrder(index, quantity){
-	console.log("Index: " + index);
-	if(sellOrders.length == 0) return;
+	console.log("Filling Sell Order with " + index + " filling quantity: " + quantity + " The sell order quantity is: " + sellOrders[index].quantity);
+	
 	if(index > sellOrders.length-1) return;
-	console.log("Filling Sell Order " + index + " quantity: " + quantity);
+	
 	var user = exports.bot.users.get(sellOrders[index].userID);
 	var price = sellOrders[index].price;
 	var total = price*quantity;
 	
 	bank.addBalanceUser(user, total);
 	
-	recordOrder(sellOrders[index], quantity, "sell");
+	//recordOrder(sellOrders[index], quantity);
+	console.log("before sell order quant: " + sellOrders[index].quantity);
+	console.log("subtraction quant: " + quantity);
 	sellOrders[index].quantity -= quantity;
+	console.log("after sell order quant: " + sellOrders[index].quantity);
 	
 	if(sellOrders[index].quantity <= 0){
-		console.log("sell order <= 0");
+		console.log("sell order <= 0. Removing order. Quantity is: " + sellOrders[index].quantity);
 		sellOrders.splice(index, 1);
 	}
 	
+	console.log("sell order filled");
+	
 }
 
-function fillBuyOrder(index, quantity){
-	if(buyOrders.length == 0) return;
+function fillBuyOrder(index, quantity, price){
+	console.log("Filling buy order " + index + " quantity: " + quantity);
 	if(index > buyOrders.length-1) return;
-	
 	var user = exports.bot.users.get(buyOrders[index].userID);
 	
 	bank.addItemUser(user, buyOrders[index].item, quantity);
 	
-	recordOrder(buyOrders[index], quantity, "buy");
+	if(price < buyOrders[index].price){
+		var refund = ( (buyOrders[index].price * quantity) - (price * quantity) );
+		console.log("refund is: " + refund);
+		bank.addBalanceUser(user, refund);
+	}
+	
 	buyOrders[index].quantity -= quantity;
 	if(buyOrders[index].quantity <= 0){
+		console.log("buy order <= 0. Removing order");
 		buyOrders.splice(index, 1);
 	}
+	
+	console.log("buy order filled");
 }
+
+
 
 exports.createBuyOrder = function(user, item, quantity, price){
 	price = Math.floor(price);
@@ -134,54 +148,27 @@ exports.createBuyOrder = function(user, item, quantity, price){
 	if(!bank.subtractBalanceUser(user, total)) return false;
 	
 	var index = buyOrders.push( {item: item, quantity: quantity, price: price, userID: user.id, username: user.username} ) - 1;
-	checkBuyOrder(index);
+	checkOrders();
 	saveExchange();
 	return true;
-}
+};
 
-function checkBuyOrder(index){
-	var quantity = buyOrders[index].quantity;
+exports.createSellOrder = function(user, item, quantity, price){
+	price = Math.floor(price);
+	if(price <= 0) return false;
 	
+	quantity = Math.floor(quantity);
+	if(quantity <= 0) return false;
 	
-	if(sellOrders.length === 0){
-		console.log("Buy order accepted. No sell orders. ");
-		return;
-	}
+	if(bank.getItemBalanceUser(user, item) < quantity) return false;
 	
-	for(var i = 0; i < sellOrders.length; i++){
-		if(buyOrders[index].item != sellOrders[i].item) continue;
-			
-		if(buyOrders[index].price < sellOrders[i].price) continue;
-				
-		if(buyOrders[index].quantity == sellOrders[i].quantity){
-			fillSellOrder(i, quantity);
-			fillBuyOrder(index, quantity);
-			
-			console.log("both orders filled completely");
-			return;
-		}
-		
-		if(buyOrders[index].quantity < sellOrders[i].quantity){
-			fillSellOrder(i, quantity);
-			fillBuyOrder(index, quantity);
-			
-			console.log("buy order filled fully");
-			return;
-		}
-		console.log("buy i is: " + i);
-		if(buyOrders[index].quantity > sellOrders[i].quantity){
-			var amount = sellOrders[i].quantity;
-			fillBuyOrder(index, amount);
-			console.log("giving sellOrder Index of: " + i);
-			fillSellOrder(i, amount);
-
-			console.log("buy order filled partially. Continuing...");
-			checkBuyOrder(index);
-		}
-		
-	}
-}
-
+	bank.subtractItemUser(user, item, quantity);
+	
+	var index = sellOrders.push( {item: item, quantity: quantity, price: price, userID: user.id, username: user.username} ) - 1;
+	checkOrders();
+	saveExchange();
+	return true;
+};
 
 exports.getSellOrders = function(start, amount){
 	var returned = "**Sell Orders:** ";

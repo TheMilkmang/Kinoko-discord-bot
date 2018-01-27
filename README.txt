@@ -43,6 +43,12 @@
 #UjinBot command#
 .give # @kinoko			Deposits a certain amount of pretzels/flowers to the bank of kinoko
 
+
 ]withdraw #				Withdraws an amount of pretzels/flowers from the bank of kinoko
 
+]sellorders				view the current pretzels being sold
+]buyorders				view the current buy orders for pretzels
+
+]sellp quantity price	list a quantity of pretzels for sell at a price
+]buyp quantity price	list a buy order for a quantity of pretzels at a price (this will buy at that price and anything below that price)
 

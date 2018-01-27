@@ -20,6 +20,11 @@ bot.on('ready', () => {
 
 bot.on('message', message => {
 	
+	if(message.channel.type == "dm"){
+		if (message.author.id === config.ujinbotID){
+			checkUjinMessage(message);
+		}
+	}
 	
 	if (message.channel != botpost) return;
 	
@@ -144,10 +149,6 @@ bot.on('message', message => {
 	
 	if(message.content == ']waifus'){
 		sendMessage(botpost, waifu.getInventory(message.author));
-	}
-	
-	if (message.author.id === config.ujinbotID){
-		checkUjinMessage(message);
 	}
 	
 	if(message.content.startsWith(']setgame ')){
@@ -286,7 +287,7 @@ function checkUjinMessage(message){
 	if(description === undefined)return;
 	console.log("checking ujin message: " + description);
 	
-	if(description.endsWith("**kinokoMK2#3258**")){
+	if(description.startsWith("`You received:`")){
 		parseUjinString(description);
 	}
 }
@@ -305,14 +306,15 @@ function parseUjinString(description){
 }
 
 function parseUjinFrom(description){
-	var result = description.substr(3,18);
-	
+	var startIndex = description.indexOf(">");
+	var newString = description.slice(startIndex);
+	var result = newString.match(/(?:^|\D)(\d{18})(?=\D|$)/g)[0].slice(1);
 	console.log("\n ujin from: " + result);
 	return bot.users.get(result);
 }
 
 function parseUjinAmount(description){
-	var newString = description.slice(34, 43);
+	var newString = description.slice(16, 26);
 	var numEndIndex = newString.indexOf("<");
 	var result = newString.substr(0, numEndIndex);
 	

@@ -37,6 +37,7 @@ exports.addBalanceUser = function(user, amount){
 	amount = Math.round(amount);
 	
 	worker.balance += amount;
+	worker.username = user.username;
 	save.jsonSave(bank, 'bank.json');
 	
 	return true;
