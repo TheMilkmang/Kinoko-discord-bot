@@ -43,7 +43,6 @@
 #UjinBot command#
 .give # @kinoko			Deposits a certain amount of pretzels/flowers to the bank of kinoko
 
-
 ]withdraw #				Withdraws an amount of pretzels/flowers from the bank of kinoko
 
 ]sellorders				view the current pretzels being sold
@@ -52,3 +51,4 @@
 ]sellp quantity price	list a quantity of pretzels for sell at a price
 ]buyp quantity price	list a buy order for a quantity of pretzels at a price (this will buy at that price and anything below that price)
 
+Notes: ]mushies and ]pretzels won't show up in your balances when you do ]m or ]pretzels. The price is EACH. 1000 pretzels times 100 mushrooms each is a lot of mushrooms, for example. 
