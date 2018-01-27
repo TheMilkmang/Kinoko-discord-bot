@@ -79,11 +79,12 @@ function checkOrders(){
 	
 }
 					
-function recordOrder(order, amount){
-	order.quantity = amount;
-	filledOrders.unshift(order);
+function recordOrder(order, amount, type){
+	var d = new Date();
+	var time = d.toString();
+	
+	filledOrders.unshift( {item: order.item, quantity: amount, type: type, price: order.price, username: order.username, time: time } );
 	console.log("order recorded:\n" + order);
-	saveExchange();
 }
 
 function fillSellOrder(index, quantity){
@@ -97,7 +98,7 @@ function fillSellOrder(index, quantity){
 	
 	bank.addBalanceUser(user, total);
 	
-	//recordOrder(sellOrders[index], quantity);
+	recordOrder(sellOrders[index], quantity, "sell");
 	console.log("before sell order quant: " + sellOrders[index].quantity);
 	console.log("subtraction quant: " + quantity);
 	sellOrders[index].quantity -= quantity;
@@ -118,7 +119,9 @@ function fillBuyOrder(index, quantity, price){
 	var user = exports.bot.users.get(buyOrders[index].userID);
 	
 	bank.addItemUser(user, buyOrders[index].item, quantity);
-	
+	recordOrder(buyOrders[index], quantity, "buy");
+
+
 	if(price < buyOrders[index].price){
 		var refund = ( (buyOrders[index].price * quantity) - (price * quantity) );
 		console.log("refund is: " + refund);
@@ -168,6 +171,18 @@ exports.createSellOrder = function(user, item, quantity, price){
 	checkOrders();
 	saveExchange();
 	return true;
+};
+
+exports.getHistory = function(amount){
+	var returned = "**Market History:** ";
+	amount = Math.min(amount, 20, filledOrders.length);
+	
+	if(filledOrders.length == 0) return(returned);
+	
+	for(var i = 0; i < amount; i++){
+		returned = returned + "\n Item: " + filledOrders[i].item + "   Quantity: " + filledOrders[i].quantity + " " + filledOrders[i].type + " Price Each: " + filledOrders[i].price + config.currency + "    " + filledOrders[i].username + "    *" + filledOrders[i].time + "*";
+	}
+	return returned;
 };
 
 exports.getSellOrders = function(start, amount){

@@ -180,6 +180,24 @@ bot.on('message', message => {
 	if(message.content === "]buyorders"){
 		sendMessage(message.channel, exchange.getBuyOrders(0, 5));
 	}
+	
+	if(message.content.startsWith("]history ")){
+	   
+	   	var array = message.content.split(' ');
+		if(array.length > 2) return;
+	
+		if(array.length == 2){
+			var choice = parseInt(array[1]);
+			if(choice >= 0){
+				sendMessage(message.channel, exchange.getHistory(choice));
+			}
+		}
+	}
+	
+	if(message.content == "]history"){
+		sendMessage(message.channel, exchange.getHistory(5));
+	}
+
 });
 
 function sendMessage(channel, message){
@@ -374,7 +392,7 @@ function update(){
 	}
 	setTimeout(update, 60000);
 }
-setTimeout(update, 60000);
+//setTimeout(update, 60000);
 setTimeout(getTimely, 9666666);
 
 bot.login(config.token);
