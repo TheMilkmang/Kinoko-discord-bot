@@ -174,11 +174,11 @@ bot.on('message', message => {
 	}
 	
 	if(message.content === "]sellorders"){
-		sendMessage(message.channel, exchange.getSellOrders(0, 5));
+		sendMessage(message.channel, exchange.getSellOrders(0, 50));
 	}
 	
 	if(message.content === "]buyorders"){
-		sendMessage(message.channel, exchange.getBuyOrders(0, 5));
+		sendMessage(message.channel, exchange.getBuyOrders(0, 50));
 	}
 	
 	if(message.content.startsWith("]history ")){
