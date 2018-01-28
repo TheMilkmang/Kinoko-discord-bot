@@ -88,7 +88,7 @@ function recordOrder(order, amount, type){
 }
 
 function fillSellOrder(index, quantity){
-	console.log("Filling Sell Order with " + index + " filling quantity: " + quantity + " The sell order quantity is: " + sellOrders[index].quantity);
+	console.log("Filling Sell Order with index " + index + " filling quantity: " + quantity + " The sell order quantity is: " + sellOrders[index].quantity);
 	
 	if(index > sellOrders.length-1) return;
 	
@@ -173,6 +173,62 @@ exports.createSellOrder = function(user, item, quantity, price){
 	return true;
 };
 
+function cancelSellOrder(index){
+	if(index > sellOrders.length - 1) return false;
+	
+	var user = exports.bot.users.get(sellOrders[index].userID);
+	var item = sellOrders[index].item;
+	var quantity = sellOrders[index].quantity;
+	
+	bank.addItemUser(user, sellOrders[index].item, quantity);
+	sellOrders.splice(index, 1);
+	saveExchange();
+	
+	return true;
+}
+
+function cancelBuyOrder(index){
+	if(index > buyOrders.length - 1) return false;
+	console.log("canceling buy order " + index);
+	
+	var user = exports.bot.users.get(buyOrders[index].userID);
+	var quantity = buyOrders[index].quantity;
+	var price = buyOrders[index].price;
+		
+	bank.addBalanceUser(user, quantity * price);
+	buyOrders.splice(index, 1);
+	saveExchange();
+	
+	return true;
+}
+
+
+exports.removeAllSellOrdersUser = function(user){
+	var id = user.id;
+	
+	for(var i = sellOrders.length - 1; i >= 0; i--){
+		
+		if(sellOrders[i].userID == id){
+			
+			cancelSellOrder(i);
+			
+		}
+		
+	}
+};
+
+exports.removeAllBuyOrdersUser = function(user){
+	var id = user.id;
+	
+	for(var i = buyOrders.length - 1; i >= 0; i--){
+		
+		if(buyOrders[i].userID == id){
+			
+			cancelBuyOrder(i);
+		
+		}
+	}
+};
 exports.getHistory = function(amount){
 	var returned = "**Market History:** ";
 	amount = Math.min(amount, 20, filledOrders.length);
@@ -180,7 +236,7 @@ exports.getHistory = function(amount){
 	if(filledOrders.length == 0) return(returned);
 	
 	for(var i = 0; i < amount; i++){
-		returned = returned + "\n Item: " + filledOrders[i].item + "   Quantity: " + filledOrders[i].quantity + " " + filledOrders[i].type + " Price Each: " + filledOrders[i].price + config.currency + "    " + filledOrders[i].username + "    *" + filledOrders[i].time + "*";
+		returned = returned + "\n **Item**: " + filledOrders[i].item + "   **Quantity**: " + filledOrders[i].quantity + " " + filledOrders[i].type + " **Price Each**: " + filledOrders[i].price + config.currency + "    " + filledOrders[i].username + "    *" + filledOrders[i].time + "*";
 	}
 	return returned;
 };
@@ -193,7 +249,7 @@ exports.getSellOrders = function(start, amount){
 	if(sellOrders.length == 0) return(returned);
 	
 	for(var i = start; i < amount; i++){
-		returned = returned + "\n Item: " + sellOrders[i].item + "    Quantity: " + sellOrders[i].quantity + "    Price Each: " + sellOrders[i].price + config.currency + "    " + sellOrders[i].username;
+		returned = returned + "\n **Item**: " + sellOrders[i].item + "    **Quantity**: " + sellOrders[i].quantity + "    **Price Each**: " + sellOrders[i].price + config.currency + "    " + sellOrders[i].username;
 	}
 	
 	return(returned);
@@ -207,7 +263,7 @@ exports.getBuyOrders = function(start, amount){
 	if(buyOrders.length == 0) return(returned);
 	
 	for(var i = start; i < amount; i++){
-		returned = returned + "\n Item: " + buyOrders[i].item + "    Quantity: " + buyOrders[i].quantity + "    Price Each: " + buyOrders[i].price + config.currency + "    " + buyOrders[i].username;
+		returned = returned + "\n **Item**: " + buyOrders[i].item + "    **Quantity**: " + buyOrders[i].quantity + "    **Price Each**: " + buyOrders[i].price + config.currency + "    " + buyOrders[i].username;
 	}
 	
 	return(returned);

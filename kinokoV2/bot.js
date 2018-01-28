@@ -53,7 +53,7 @@ bot.on('message', message => {
 		sendMessage(message.channel, kms.attemptSuicide(message.author));
 	}
 	
-	if(message.content.startsWith(']mushies') || message.content == ']m'){
+	if(message.content.startsWith(']mushies') || message.content.startsWith(']m')){
 		
 		var balance = bank.getBalanceUser(message.author);
 		
@@ -157,7 +157,7 @@ bot.on('message', message => {
 		console.log("\nsetting game: " + str);
 	}
 	
-	if(message.content === "]pretzels"){
+	if(message.content === "]pretzels" || message.content === "]p"){
 		sendMessage(message.channel, "You have " + bank.getItemBalanceUser(message.author, "Ujin Currency") + config.ujinCurrency);
 	}
 	
@@ -196,6 +196,16 @@ bot.on('message', message => {
 	
 	if(message.content == "]history"){
 		sendMessage(message.channel, exchange.getHistory(5));
+	}
+	
+	if(message.content == "]removesells"){
+		exchange.removeAllSellOrdersUser(message.author);
+		sendMessage(message.channel, "If you had any open sell orders, they've been just been revoked!");
+	}
+	
+	if(message.content == "]removebuys"){
+		exchange.removeAllBuyOrdersUser(message.author);
+		sendMessage(message.channel, "If you had any open buy orders, they've just been revoked!");
 	}
 
 });

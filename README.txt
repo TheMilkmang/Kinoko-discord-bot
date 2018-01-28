@@ -14,15 +14,20 @@
 ---------------------------------
 
 ]mushies 				Displays your balance
+]m
 ]mushies @				displays someone elses balance
+]m @
+
 ]greediest				List richest people
 ]greediest #			List up to 20 richest people instead of 5.
 ]poorest				List of poorest people
 ]poorest #				List up to 20 of poorest people instead of 5.
+
 ]send <amount> <@nick>	Send some mushrooms to somebody.	
 
 ]bf # <t/h>				Coin flip with a bet of #, for it to land on tails or heads.
 ]bf ALL <t/h>			Bets all and gives a slight bonus for risking it all
+
 ]balloon				Gives information on the current balloon. When it pops the last person owning it wins the prize pool!
 ]buyballoon				Buys the balloon
 ]bomb					Gives information about the current bomb. When somebody buys it the money goes to the last person and the price increases!
@@ -43,6 +48,9 @@
 #UjinBot command#
 .give # @kinoko			Deposits a certain amount of pretzels/flowers to the bank of kinoko
 
+]pretzels				see your Bank of Kinoko pretzel balance
+]p
+
 ]withdraw #				Withdraws an amount of pretzels/flowers from the bank of kinoko
 
 ]sellorders				view the current pretzels being sold
@@ -51,7 +59,10 @@
 ]sellp quantity price	list a quantity of pretzels for sell at a price
 ]buyp quantity price	list a buy order for a quantity of pretzels at a price (this will buy at that price and anything below that price)
 
+]removesells			remove all of your sell orders and return items to your balance
+]removebuys 			remove all of your open buy orders and return mushies to your balance
+
 ]history <#>			# is optional. Shows you the market transaction history
 
 
-Notes: mushrooms and pretzels that you have listed in the exchange won't show up in your balances when you do ]m or ]pretzels. The price is EACH. 1000 pretzels times 100 mushrooms each is a lot of mushrooms, for example. There is not yet a way to remove your market listings manually. 
+Notes: mushrooms and pretzels that you have listed in the exchange won't show up in your balances when you do ]m or ]pretzels. The price is EACH. 1000 pretzels times 100 mushrooms each is a lot of mushrooms, for example.

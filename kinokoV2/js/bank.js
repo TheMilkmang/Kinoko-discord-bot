@@ -37,7 +37,7 @@ exports.addBalanceUser = function(user, amount){
 	amount = Math.round(amount);
 	
 	worker.balance += amount;
-	worker.username = user.username;
+	worker.name = user.username;
 	save.jsonSave(bank, 'bank.json');
 	
 	return true;
@@ -67,7 +67,7 @@ exports.getPopulation = function(){
 exports.getBalanceUser = function(user){
 	var worker = bankFindByUser(user);
 	worker.balance = Math.round(worker.balance);
-	worker.username = user.username;
+	worker.name = user.username;
 	return worker.balance;
 };
 
