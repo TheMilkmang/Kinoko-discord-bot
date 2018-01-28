@@ -165,6 +165,10 @@ bot.on('message', message => {
 	   withdrawPretzels(message);
 	}
 	
+	if(message.content == ']sellp' || message.content == ']buyp'){
+		sendMessage(message.channel, "Hi! The command to buy or sell pretzels on the exchange is ]buyp <quantity> <price> or ]sellp <quantity> <price>. To see related commands do ]help");
+	}
+	
 	if(message.content.startsWith(']sellp ')){
 		sellPretzels(message);
 	}
