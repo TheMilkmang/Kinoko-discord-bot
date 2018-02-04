@@ -10,12 +10,43 @@ var balloon = require('./js/balloon.js');
 var waifu = require('./js/waifu.js');
 var exchange = require('./js/exchange.js');
 
-var botpost = -1;
+var botpost;
+var bellpost;
+var general;
 const bot = new Discord.Client();
 
 bot.on('ready', () => {
 	console.log('I am ready!');
+	
 	botpost = bot.channels.get(config.botPostID);
+	bellpost = bot.channels.get(config.bellPostID);
+	general = bot.channels.get(config.generalID);
+	
+	general.fetchMessages({ limit: 15 })
+  .then(messages => console.log(`Received ${messages.size} messages`))
+  .catch(console.error);
+	
+});
+
+function emojiEmbed(emoji){
+	
+	return("https://cdn.discordapp.com/emojis/" + emoji.id + ".png");
+}
+bot.on('messageReactionRemove', (messageReaction, user) => {
+	
+	var embed = new Discord.RichEmbed()
+	.setColor("#AA0000")
+	.setTimestamp()
+	.setDescription(`Username: **${user.username}** | ${user.tag}`);
+	
+	if(messageReaction.emoji.id === null){
+		embed.setAuthor(messageReaction.emoji + "Reaction removed in #" + messageReaction.message.channel.name);
+	}else{
+		embed.setAuthor(`Reaction removed in #${messageReaction.message.channel.name}`, emojiEmbed(messageReaction.emoji) );
+	}
+						
+	sendMessage(bellpost, {embed});
+
 });
 
 bot.on('message', message => {
