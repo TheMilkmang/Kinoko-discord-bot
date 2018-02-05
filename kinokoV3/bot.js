@@ -1,4 +1,5 @@
 const Discord = require('discord.js');
+var googleTTS = require('google-tts-api');
 var config = require('./json/config.json');
 var bank = require('./js/bank.js');
 var kms = require('./js/suicide.js');
@@ -10,9 +11,15 @@ var balloon = require('./js/balloon.js');
 var waifu = require('./js/waifu.js');
 var exchange = require('./js/exchange.js');
 
+
 var botpost;
 var bellpost;
-var general;
+var chanGeneral;
+var VC = false;
+var langCode = 'en';
+var vcMessages = [];
+var userTTS = false;
+var generalTTS = false;
 const bot = new Discord.Client();
 
 bot.on('ready', () => {
@@ -20,18 +27,14 @@ bot.on('ready', () => {
 	
 	botpost = bot.channels.get(config.botPostID);
 	bellpost = bot.channels.get(config.bellPostID);
-	general = bot.channels.get(config.generalID);
+	chanGeneral = bot.channels.get(config.generalID);
 	
-	general.fetchMessages({ limit: 15 })
+	chanGeneral.fetchMessages({ limit: 15 })
   .then(messages => console.log(`Received ${messages.size} messages`))
   .catch(console.error);
 	
 });
 
-function emojiEmbed(emoji){
-	
-	return("https://cdn.discordapp.com/emojis/" + emoji.id + ".png");
-}
 bot.on('messageReactionRemove', (messageReaction, user) => {
 	
 	var embed = new Discord.RichEmbed()
@@ -42,7 +45,7 @@ bot.on('messageReactionRemove', (messageReaction, user) => {
 	if(messageReaction.emoji.id === null){
 		embed.setAuthor(messageReaction.emoji + "Reaction removed in #" + messageReaction.message.channel.name);
 	}else{
-		embed.setAuthor(`Reaction removed in #${messageReaction.message.channel.name}`, emojiEmbed(messageReaction.emoji) );
+		embed.setAuthor(`Reaction removed in #${messageReaction.message.channel.name}`, "https://cdn.discordapp.com/emojis/" + messageReaction.emoji.id + ".png" );
 	}
 						
 	sendMessage(bellpost, {embed});
@@ -55,6 +58,31 @@ bot.on('message', message => {
 		if (message.author.id === config.ujinbotID){
 			checkUjinMessage(message);
 		}
+	}
+
+	if(message.content.startsWith("]lang ")){
+		var newLang = message.content.slice(6);
+		message.author.langCode = newLang;
+	}
+	
+	if(message.channel === botpost && VC && generalTTS && !message.author.bot){
+		
+		var cleanMessage = ttsCleanMessage(message.content);
+		console.log(cleanMessage);
+		if(cleanMessage.length > 200 || cleanMessage.length == 0)return;
+		
+		if(!message.author.hasOwnProperty('langCode')){
+			
+			message.author.langCode = config.langs[ Math.floor(Math.random() * config.langs.length) ];
+		}
+		
+		var ttsObj = { message: cleanMessage, lang: message.author.langCode, speed: 1 };
+		
+		console.log("doing gen voice on message: " + ttsObj.message + "\n Lang code: " + ttsObj.lang);
+		
+		vcMessages.push(ttsObj);
+		playTTS();
+		
 	}
 	
 	if (message.channel != botpost) return;
@@ -242,12 +270,140 @@ bot.on('message', message => {
 		exchange.removeAllBuyOrdersUser(message.author);
 		sendMessage(message.channel, "If you had any open buy orders, they've just been revoked!");
 	}
+	
+	if(message.content === "]joinVC"){
+		if(VC !== false){
+			sendMessage(message.channel, "I think I'm already in a VC channel...");
+		}
+		
+		if (message.member.voiceChannel) {
+			
+      		message.member.voiceChannel.join()
+        	.then(connection => { // Connection is an instance of VoiceConnection
+          		VC = connection;
+				message.reply('I have successfully connected to the channel!');
+				connection.on('disconnect', () => { VC = false; } );	
+		})
+        .catch(console.log);
+    	} else {
+     		 message.reply('You need to join a voice channel first!');
+    	}
+		
+	}
+	
+	if(message.content === "]quitVC"){
+		if(VC !== false){
+			VC.disconnect();
+		}
+	}
+	
+	if(message.content.startsWith("]userTTS")){
+		if(!userTTS){
+			userTTS = true;
+			generalTTS = false;
+			sendMessage(message.channel, "User TTS enabled. General TTS disabled. Type ]tts <message> to speak!");
+		}else{
+			userTTS = false;
+			sendMessage(message.channel, "User TTS disabled.");
+		}
+	}
+	
+	if(message.content.startsWith("]generalTTS")){
+		if(!generalTTS){
+			generalTTS = true;
+			userTTS = false;
+			sendMessage(message.channel, "General TTS enabled. User TTS disabled. Listen to them talk xd");
+		}else{
+			generalTTS = false;
+			sendMessage(message.channel, "General TTS disabled. Wasn't it amusing though?");
+		}
+	}
+	
+	
+
+	if(message.content.startsWith("]tts") && userTTS){
+		var ttsMsg = message.content.slice(5);
+		var lang = 'en';
+		
+		var cleanMessage = ttsCleanMessage(ttsMsg);
+
+		
+		if(message.author.hasOwnProperty('langCode')){
+			lang = message.author.langCode;
+		}
+		
+		var ttsObj = { message: cleanMessage, lang: lang, speed: 1 };
+
+		if(cleanMessage.length > 200 || cleanMessage.length == 0){
+			sendMessage(message.channel, "TTS messages need to be less than 200 characters. Yours was " + ttsMsg.length + " characters.");
+			return;
+		}
+		
+		vcMessages.push(ttsObj);
+		playTTS();		
+	}
+	
+	if(message.content === "]mylang"){
+		if(!message.author.hasOwnProperty('langCode')){
+			message.author.langCode = 'en';
+		}
+		sendMessage(message.channel, "Your current lang is: " + message.author.langCode);
+	}
+	
 
 });
 
 function sendMessage(channel, message){
 		console.log("LOGGING chANneL: " + channel + "\n Message: " + message);
 		channel.send(message);
+}
+
+function playTTS(){
+	
+	
+	if(!VC.speaking){	
+		googleTTS(vcMessages[0].message, vcMessages[0].lang, vcMessages[0].speed)
+		.then( url => { 
+
+			const dispatcher = VC.playArbitraryInput(url); 
+
+			dispatcher.on('start', () => {
+				VC.player.streamingData.pausedTime = 0;				
+			});
+
+			dispatcher.on('end', () => {
+				vcMessages.shift();
+				console.log("on end length " + vcMessages.length);
+				if(vcMessages.length > 0){
+					console.log("playing vc on end");
+					playTTS();
+				}
+			})
+
+		})
+		.catch( e => { console.log(e); });
+	}
+}
+
+function ttsCleanMessage(str){
+	if( str.indexOf('<') >= 0){
+	   var left = str.indexOf('<');
+		console.log("index of left: " + left);
+	}else{
+		console.log("returning " + str);
+		return(str);
+	}
+
+	if( str.indexOf('>', left) >= 0 ){
+		var right = str.indexOf('>', left) + 1;
+		console.log("index of right: " + right);
+	}else return(str);
+
+	var res = str.substring(left, right);
+	str = str.replace(res, "");
+	console.log("str: " + str);
+	return(ttsCleanMessage(str));
+		
 }
 
 function sendMushies(message){
