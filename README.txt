@@ -44,6 +44,7 @@
 ]population				How many people have used these mushroom commands at least once
 
 ---------------------------------
+Pretzel Exchange Stuff
 
 #UjinBot command#
 .give # @kinoko			Deposits a certain amount of pretzels/flowers to the bank of kinoko
@@ -66,3 +67,21 @@
 
 
 Notes: mushrooms and pretzels that you have listed in the exchange won't show up in your balances when you do ]m or ]pretzels. The price is EACH. 1000 pretzels times 100 mushrooms each is a lot of mushrooms, for example.
+
+---------------------------------
+TTS stuff
+
+]joinVC					You MUST be in a VC channel. Joins the VC channel you're in. Only one at a time. Do a ]quitVC and rejoin to change
+]quitVC					disconnects from the VC channel
+
+]generalTTS				Activates the mode where it reads every message in #botspam without needing TTS. This disables userTTS mode if it was enabled prior
+]userTTS				Activates the mode requiring messages to start with ]tts to be read. Disables generalTTS mode. Do either of these commands twice to disable (it's a toggle)
+
+]tts <message> 			The bot reads your message aloud if it's in userTTS mode and in a VC channel.
+
+]lang <lang-code>		Sets the lang code to use as your voice. Not all of them work for english text, so if it's not speaking and it should then try "en" for the lang code.
+
+
+Lang codes can be found here: https://cloud.google.com/speech/docs/languages
+
+Don't abuse this or I'll have to restrict these commands and have the mods babysit y'all to use it. One bad apple ruins the bunch eh? ping @meeseeks any issues.
