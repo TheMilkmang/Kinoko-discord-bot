@@ -74,8 +74,11 @@ TTS stuff
 ]joinVC					You MUST be in a VC channel. Joins the VC channel you're in. Only one at a time. Do a ]quitVC and rejoin to change
 ]quitVC					disconnects from the VC channel
 
-]generalTTS				Activates the mode where it reads every message in #botspam without needing TTS. This disables userTTS mode if it was enabled prior
+]spamTTS				Activates the mode where it reads every message in #botspam without needing TTS. This disables userTTS mode if it was enabled prior
 ]userTTS				Activates the mode requiring messages to start with ]tts to be read. Disables generalTTS mode. Do either of these commands twice to disable (it's a toggle)
+]generalTTS				Same as ]spamTTS but for #general. Only bot owner can use this since it's prone to abuse though. 
+
+]dec <message> 			Uses the dectalk/moonbase alpha voice to talk. This one doesn't queue messages and only plays if there's currently nothing playing.
 
 ]tts <message> 			The bot reads your message aloud if it's in userTTS mode and in a VC channel.
 

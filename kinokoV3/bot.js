@@ -20,6 +20,8 @@ var langCode = 'en';
 var vcMessages = [];
 var userTTS = false;
 var generalTTS = false;
+var spamTTS = false;
+var unusedLangs = config.goodLangs.slice();
 const bot = new Discord.Client();
 
 bot.on('ready', () => {
@@ -65,7 +67,7 @@ bot.on('message', message => {
 		message.author.langCode = newLang;
 	}
 	
-	if(message.channel === botpost && VC && generalTTS && !message.author.bot){
+	if(message.channel === botpost && VC && spamTTS && !message.author.bot){
 		
 		var cleanMessage = ttsCleanMessage(message.content);
 		console.log(cleanMessage);
@@ -74,6 +76,31 @@ bot.on('message', message => {
 		if(!message.author.hasOwnProperty('langCode')){
 			
 			message.author.langCode = config.langs[ Math.floor(Math.random() * config.langs.length) ];
+		}
+		
+		var ttsObj = { message: cleanMessage, lang: message.author.langCode, speed: 1 };
+		
+		console.log("doing gen voice on message: " + ttsObj.message + "\n Lang code: " + ttsObj.lang);
+		
+		vcMessages.push(ttsObj);
+		playTTS();
+		
+	}
+	
+	if(message.channel === chanGeneral && VC && generalTTS && !message.author.bot){
+		console.log("message in general");
+		var cleanMessage = ttsCleanMessage(message.content);
+		console.log(cleanMessage);
+		if(cleanMessage.length > 200 || cleanMessage.length == 0)return;
+		
+		if(!message.author.hasOwnProperty('langCode')){
+			if(unusedLangs.length){
+				var codeIndex = Math.floor(Math.random() * unusedLangs.length);
+				message.author.langCode = config.goodLangs[codeIndex];
+				unusedLangs.splice(codeIndex, 1);
+			}else{
+				message.author.langCode = config.langs[Math.floor(Math.random() * config.langs.length)];
+			}
 		}
 		
 		var ttsObj = { message: cleanMessage, lang: message.author.langCode, speed: 1 };
@@ -301,6 +328,7 @@ bot.on('message', message => {
 		if(!userTTS){
 			userTTS = true;
 			generalTTS = false;
+			spamTTS = false
 			sendMessage(message.channel, "User TTS enabled. General TTS disabled. Type ]tts <message> to speak!");
 		}else{
 			userTTS = false;
@@ -308,10 +336,11 @@ bot.on('message', message => {
 		}
 	}
 	
-	if(message.content.startsWith("]generalTTS")){
+	if(message.content.startsWith("]generalTTS") && message.author.id === '282340868705222667'){
 		if(!generalTTS){
 			generalTTS = true;
 			userTTS = false;
+			spamTTS = false
 			sendMessage(message.channel, "General TTS enabled. User TTS disabled. Listen to them talk xd");
 		}else{
 			generalTTS = false;
@@ -319,7 +348,17 @@ bot.on('message', message => {
 		}
 	}
 	
-	
+	if(message.content.startsWith("]spamTTS")){
+		if(!spamTTS){
+			spamTTS = true;
+			userTTS = false;
+			generalTTS = false
+			sendMessage(message.channel, "Spam TTS enabled. User TTS disabled. Listen to them talk xd");
+		}else{
+			spamTTS = false;
+			sendMessage(message.channel, "Spam TTS disabled. Wasn't it amusing though?");
+		}
+	}
 
 	if(message.content.startsWith("]tts") && userTTS){
 		var ttsMsg = message.content.slice(5);
@@ -350,7 +389,24 @@ bot.on('message', message => {
 		sendMessage(message.channel, "Your current lang is: " + message.author.langCode);
 	}
 	
-
+	if(message.content.startsWith("]dec ") && userTTS){
+		var ttsMsg = message.content.slice(5);
+		
+		if(!VC.speaking){
+			var url = "http://talk.moustacheminer.com/api/gen?dectalk=";
+			url += encodeURIComponent(ttsMsg.trim());
+			console.log("dec url: " + url);
+			const dispatcher = VC.playArbitraryInput(url);
+		}
+	}
+	
+	if(message.content.startsWith("]gl ")){
+		var code = message.content.slice(4);
+		config.goodLangs.push(code);
+		save.jsonSave(config, 'config.json');
+		sendMessage(message.channel, "Added " + code + " to the list of good langs.");
+	}
+	
 });
 
 function sendMessage(channel, message){
