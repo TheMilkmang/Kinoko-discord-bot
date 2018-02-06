@@ -88,3 +88,9 @@ TTS stuff
 Lang codes can be found here: https://cloud.google.com/speech/docs/languages
 
 Don't abuse this or I'll have to restrict these commands and have the mods babysit y'all to use it. One bad apple ruins the bunch eh? ping @meeseeks any issues.
+
+---------------------------------
+
+
+Thanks to http://talk.moustacheminer.com for the free DECtalk API
+
