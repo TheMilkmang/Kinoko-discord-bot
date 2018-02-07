@@ -18,6 +18,7 @@ var chanGeneral;
 var VC = false;
 var langCode = 'en';
 var vcMessages = [];
+var canSpeak = true;
 var userTTS = false;
 var generalTTS = false;
 var spamTTS = false;
@@ -417,10 +418,10 @@ function sendMessage(channel, message){
 function playTTS(){
 	
 	
-	if(!VC.speaking){	
+	if(!VC.speaking && canSpeak){	
+		canSpeak = false;
 		googleTTS(vcMessages[0].message, vcMessages[0].lang, vcMessages[0].speed)
 		.then( url => { 
-
 			const dispatcher = VC.playArbitraryInput(url); 
 
 			dispatcher.on('start', () => {
@@ -428,6 +429,7 @@ function playTTS(){
 			});
 
 			dispatcher.on('end', () => {
+				canSpeak = true;
 				vcMessages.shift();
 				console.log("on end length " + vcMessages.length);
 				if(vcMessages.length > 0){
@@ -437,7 +439,10 @@ function playTTS(){
 			})
 
 		})
-		.catch( e => { console.log(e); });
+		.catch( e => { 
+			console.log(e); 
+			canSpeak = true;
+		});
 	}
 }
 

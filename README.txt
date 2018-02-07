@@ -90,7 +90,8 @@ Lang codes can be found here: https://cloud.google.com/speech/docs/languages
 Don't abuse this or I'll have to restrict these commands and have the mods babysit y'all to use it. One bad apple ruins the bunch eh? ping @meeseeks any issues.
 
 ---------------------------------
+DONATE
 
+ETH:	0x242c4910c3Fe7D0E8C418823395AeC579411e042
 
-Thanks to http://talk.moustacheminer.com for the free DECtalk API
-
+PayPal: dm me
