@@ -11,12 +11,16 @@ var balloon = require('./js/balloon.js');
 var waifu = require('./js/waifu.js');
 var exchange = require('./js/exchange.js');
 var tts = require('./js/tts.js');
+var ceelo = require('./js/ceelo.js');
 
 var botpost;
 var bellpost;
 var chanGeneral;
+var cgame;
 
 const bot = new Discord.Client();
+
+
 
 bot.on('ready', () => {
 	console.log('I am ready!');
@@ -24,7 +28,8 @@ bot.on('ready', () => {
 	botpost = bot.channels.get(config.botPostID);
 	bellpost = bot.channels.get(config.bellPostID);
 	chanGeneral = bot.channels.get(config.generalID);
-	
+	cgame = new ceelo.Ceelo(botpost, {name: "mushrooms", emoji: ":mushroom:"});
+		
 	chanGeneral.fetchMessages({ limit: 15 })
   .then(messages => console.log(`Received ${messages.size} messages`))
   .catch(console.error);
@@ -280,8 +285,12 @@ bot.on('message', message => {
 		tts.toggleSpamTTS(message);
 	}
 
-	if(message.content.startsWith("]tts")){
+	if(message.content.startsWith("]tts ")){
 		tts.userTTS(message);
+	}
+	
+	if(message.content.startsWith("]ttss ")){
+	   tts.userTTSSpeed(message);
 	}
 	
 	if(message.content === "]mylang"){
@@ -298,6 +307,37 @@ bot.on('message', message => {
 	if(message.content.startsWith("]echo ")){
 	   tts.echoTTS(message);
 	}
+	
+	if(message.content.startsWith("c]join ")){
+		var args = message.content.split(' ');
+		if(args.length < 2) return;
+		var stack = Math.round(parseInt(args[1]));
+		if(stack <= 0) return;
+		
+		cgame.join(message.author, stack);
+	}
+	
+	if(message.content == "c]quit"){
+		cgame.quit(message.author);
+	}
+	
+	if(message.content.startsWith("c]bet")){
+		var args = message.content.split(' ');
+		if(args.length < 2) return;
+		
+		var bet = Math.round(parseInt(args[1]));
+		if(bet <= 0) return;
+		cgame.makeBet(message.author, bet);
+	}
+	
+	if(message.content == "c]roll"){
+		cgame.makeRoll(message.author);
+	}
+	
+	if(message.content == "c]stack"){
+		cgame.getStack(message.author);
+	}
+	
 });
 
 function sendMessage(channel, message){

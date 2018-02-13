@@ -214,6 +214,44 @@ exports.userTTS = function(message){
 	playTTS();	
 };
 
+exports.userTTSSpeed = function(message){
+	console.log("ttsspeed");
+	
+	if(!userTTS){
+		message.reply("user tts isn't enabled. Do ]userTTS to enable.");
+		return;
+	}
+	
+	var speed = message.content.split(' ')[1];
+	speed = parseInt(speed);
+	
+	if(speed > 3){
+		speed = 3;
+	}else if(speed < 0.5){
+		speed = 0.5;
+	}
+	
+	var ttsMsg = message.content.slice(5); //"]tts "
+	var lang = 'en';
+
+	var cleanMessage = ttsCleanMessage(ttsMsg);
+	if(cleanMessage.length > 200 || cleanMessage.length == 0){
+		message.reply("TTS messages need to be less than 200 characters. Yours was " + ttsMsg.length + " characters.");
+		return;
+	}
+
+	if(message.author.hasOwnProperty('langCode')){
+		lang = message.author.langCode;
+	}else{
+		message.author.langCode = config.goodLangs[Math.floor(Math.random() * config.goodLangs.length)];
+	}
+
+	var ttsObj = { message: cleanMessage, lang: lang, speed: speed };
+
+	vcMessages.push(ttsObj);
+	playTTS();	
+};
+
 exports.decTTS = function(message){
 	if(!userTTS){
 		message.reply("user tts isn't enabled. Do ]userTTS to enable.");
