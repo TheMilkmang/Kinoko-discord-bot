@@ -1,9 +1,6 @@
 var config = require('../json/config.json');
 var bank = require('./bank.js');
 
-
-
-
 exports.Ceelo = function(chan, currency){
 	this.chan = chan;
 	this.currency = currency.name;
@@ -22,8 +19,6 @@ exports.Ceelo = function(chan, currency){
 	
 	
 };
-
-
 
 exports.Ceelo.prototype.join = function(user, stack){
 	
@@ -110,16 +105,22 @@ exports.Ceelo.prototype.quit = function(user){
 		}else{
 			this.chan.send(this.msgPrefix + user + " Please wait until your bet is done to quit!");
 		}
+		return;
 	}
 	
 	if(this.state == 'rolling'){
 		this.chan.send(this.msgPrefix + user + " Please wait until your bet is done to quit!");
+		return;
 	}
 	
 };
 
 exports.Ceelo.prototype.makeBet = function(user, amount){
-
+	
+	if(!this.players.includes(user)){
+		this.chan.send(this.msgPrefix + user + " you are not in the game.");
+		return;
+	}
 	
 	this.setBet = function(){
 		if(amount < this.minBet){
@@ -132,6 +133,8 @@ exports.Ceelo.prototype.makeBet = function(user, amount){
 				this.betting();
 			}
 			user.ceelo.bet = amount;
+			this.needBet.splice(this.needBet.indexOf(user), 1);
+			this.needRoll.push(user);
 			this.chan.send(this.msgPrefix + user.username + " Has placed a bet of " + amount + this.chip);
 			return true;
 		}else{
@@ -147,8 +150,6 @@ exports.Ceelo.prototype.makeBet = function(user, amount){
 	if(this.state == 'ready'){
 		
 		if(this.setBet()){
-			this.needBet.splice(this.needBet.indexOf(user), 1);
-			this.needRoll.push(user);
 			return;
 		}
 		
@@ -157,8 +158,7 @@ exports.Ceelo.prototype.makeBet = function(user, amount){
 	if(this.state == 'betting'){
 		if(this.needBet.includes(user)){
 			if(this.setBet()){
-				this.needBet.splice(this.needBet.indexOf(user), 1);
-				this.needRoll.push(user);
+
 				if(this.needBet.length == 0){
 					this.rolling();
 					return;
@@ -170,6 +170,7 @@ exports.Ceelo.prototype.makeBet = function(user, amount){
 	
 	if(this.state == 'rolling'){
 		this.chan.send(this.msgPrefix + user + " Wait until the next round to bet, we are waiting on people to roll.");
+		return;
 	}
 	
 };
@@ -196,15 +197,9 @@ exports.Ceelo.prototype.makeRoll = function(user){
 	
 	
 	
-	if(this.state == 'idle'){
+	if(this.state == 'idle' || this.state == 'ready'){
 		this.chan.send(this.msgPrefix + user.username + " a game has not started yet. Once there's 2+ people place your bets and then roll.");
 		return;
-	}
-	
-	if(this.state == 'ready'){
-		this.chan.send(this.msgPrefix + user.username + " a game has not started yet. Once there's 2+ people place your bets and then roll.");
-		return;
-
 	}
 	
 	if(this.state == 'betting'){
@@ -351,8 +346,6 @@ exports.Ceelo.prototype.rolling = function(){
 	this.state = 'rolling';
 	
 	this.chan.send("All bets are placed! " + this.needRoll[0] + " it is your turn to roll!");
-
-
 };
 
 exports.Ceelo.prototype.payout = function(){
