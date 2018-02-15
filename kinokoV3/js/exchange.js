@@ -141,7 +141,7 @@ function fillBuyOrder(index, quantity, price){
 
 exports.createBuyOrder = function(user, item, quantity, price){
 	price = Math.floor(price);
-	if(price <= 0) return false;
+	if(price <= 0 || price > 1000000000) return false;
 	
 	quantity = Math.floor(quantity);
 	if(quantity <= 0) return false;
@@ -158,7 +158,7 @@ exports.createBuyOrder = function(user, item, quantity, price){
 
 exports.createSellOrder = function(user, item, quantity, price){
 	price = Math.floor(price);
-	if(price <= 0) return false;
+	if(price <= 0 || price > 1000000000) return false;
 	
 	quantity = Math.floor(quantity);
 	if(quantity <= 0) return false;
@@ -182,7 +182,6 @@ function cancelSellOrder(index){
 	
 	bank.addItemUser(user, sellOrders[index].item, quantity);
 	sellOrders.splice(index, 1);
-	saveExchange();
 	
 	return true;
 }
@@ -197,7 +196,6 @@ function cancelBuyOrder(index){
 		
 	bank.addBalanceUser(user, quantity * price);
 	buyOrders.splice(index, 1);
-	saveExchange();
 	
 	return true;
 }
@@ -215,6 +213,7 @@ exports.removeAllSellOrdersUser = function(user){
 		}
 		
 	}
+	saveExchange();
 };
 
 exports.removeAllBuyOrdersUser = function(user){
@@ -228,6 +227,8 @@ exports.removeAllBuyOrdersUser = function(user){
 		
 		}
 	}
+	saveExchange();
+
 };
 exports.getHistory = function(amount){
 	var returned = "**Market History:** ";

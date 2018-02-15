@@ -187,7 +187,7 @@ exports.toggleSpamTTS = function(message){
 };
 
 exports.userTTS = function(message){
-	if(!userTTS){
+	if(!userTTS || !VC){
 		message.reply("user tts isn't enabled. Do ]userTTS to enable.");
 		return;
 	}
@@ -253,7 +253,7 @@ exports.userTTSSpeed = function(message){
 };
 
 exports.decTTS = function(message){
-	if(!userTTS){
+	if(!userTTS || !VC){
 		message.reply("user tts isn't enabled. Do ]userTTS to enable.");
 		return;
 	}

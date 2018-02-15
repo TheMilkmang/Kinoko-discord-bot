@@ -361,7 +361,7 @@ function sendMushies(message){
 	}
 
 	var amount = parseInt(array[1]);
-	if(amount >= 0){}else return;
+	if(amount <= 0 || amount > 1000000) return;
 
 	if(bank.sendMushies(fromUser, toUser, amount)){
 		sendMessage(message.channel, fromUser.username + " sent " + amount + config.currency + " to " + toUser.username);

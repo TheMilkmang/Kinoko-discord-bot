@@ -17,6 +17,7 @@ exports.Ceelo = function(chan, currency){
 	this.minBet = 10;
 	this.minStack = 100;
 	
+	this.roundPot = 0;
 	
 };
 
@@ -318,7 +319,7 @@ exports.Ceelo.prototype.ready = function(){
 	this.needRoll = [];
 	this.needBet = [];
 	this.rolled = [];
-	
+	this.roundPot = 0;
 	
 	if(this.players.length >= 2){
 		this.state = 'ready';
@@ -350,28 +351,60 @@ exports.Ceelo.prototype.rolling = function(){
 
 exports.Ceelo.prototype.payout = function(){
 	var winner = false;
-	var tied = '';
+	var tiedStr = '';
 	var msg = "The game is over! ";
-	
+	var loseMsg = " These players lost: ";
+	var tiedPlayers = [];
+	var losers = [];
+	var mult = 1;
+	var tiedBetsTotal = 0;
 	this.rolled.sort( (a,b) => b.ceelo.rollScore - a.ceelo.rollScore);
 	
 	if(this.rolled[0].ceelo.rollScore > this.rolled[1].ceelo.rollScore){
 		winner = this.rolled[0];
-		console.log("rolled winner bet: " + this.rolled[0].ceelo.bet);
 	}else{
-		for(var i = 1; i < this.rolled.length; i++){
-			if(this.rolled[i].ceelo.rollScore == this.rolled[0].ceelo.rollScore){
-				this.needRoll.push(this.rolled[i]);
-				this.rolled[i].ceelo.numRolls = 0;
-				tied += (this.rolled[i].username + " and ");
-			}else break;
+		if(this.rolled[0].rollScore >= 100){
+			mult = 2;
 		}
-		this.chan.send("Looks like we have a tie between " + tied + "! The tied players will have to reroll to determine who wins! First one to roll is " + this.needRoll[0]);
+		
+		for(var i = 0; i < this.rolled.length; i++){
+			if(this.rolled[i].ceelo.rollScore == this.rolled[0].ceelo.rollScore){
+				tiedPlayers.push(this.rolled[i]);
+				tiedStr += (" and " + this.rolled[i].username);
+				tiedBetsTotal += this.rolled[i].ceelo.bet;
+			}else{
+				losers.push(this.rolled[i]);
+			}
+		}
+		this.rolled = [];
+		
+		for(var i = 0; i < tiedPlayers.length; i++){
+			this.needRoll.push(tiedPlayers[i]);
+			tiedPlayers[i].ceelo.numRolls = 0;
+			tiedPlayers[i].ceelo.rollScore = 0;
+			tiedPlayers[i].ceelo.roll = [];
+			tiedPlayers[i].ceelo.rollString = '';
+		}
+		
+		for(var i = 0; i < losers.length; i++){
+			if(mult == 2 || losers[i].ceelo.rollScore == -1){
+				var amt = Math.min(tiedBetsTotal, losers[i].ceelo.bet*2);
+				loseMsg += ( losers[i].username + ' lost double for a total of ' + amt + this.chip + ', ' );
+				losers[i].ceelo.stack -= amt;
+				this.roundPot += amt;
+			}else{
+				var amt = Math.min(tiedBetsTotal, losers[i].ceelo.bet);
+				loseMsg += ( losers[i].username + ' lost ' + amt + this.chip + ', ');
+				losers[i].ceelo.stack -= amt;
+				this.roundPot += amt;
+			}
+		}
+		this.chan.send("Looks like we have a tie between " + tiedStr + "! " + loseMsg + " The extra pot for the tied players is at " + this.roundPot + " The tied players will have to reroll to determine who wins! First one to roll is " + this.needRoll[0]);
 		return;
 	}
 	
 	if(winner != false){
-		var mult = 1;
+		mult = 1;
 		var total = 0;
 		var lowBet = 0;
 		for(var i = 0; i < this.rolled.length; i++){
@@ -381,7 +414,6 @@ exports.Ceelo.prototype.payout = function(){
 			}
 			
 			lowBet = Math.min(this.rolled[i].ceelo.bet, winner.ceelo.bet);
-			console.log("low bet: " + lowBet + "rolled bet: " + this.rolled[i].ceelo.bet + " winner bet: " + winner.ceelo.bet);
 			if(winner.ceelo.rollScore >= 100 || this.rolled[i].ceelo.rollScore == -1){
 				mult = 2;
 				msg += (this.rolled[i].username + " lost double for a total of " + (lowBet * mult) + this.chip);
@@ -394,6 +426,12 @@ exports.Ceelo.prototype.payout = function(){
 			msg += (" they have " + this.rolled[i].ceelo.stack + this.chip + "left in their stack \n");
 			total += (lowBet * mult);
 		}
+		if(this.roundPot > 0){
+			msg += ("The extra pot from ties was: " + this.roundPot + this.chip);
+			total += this.roundPot;
+			winner.ceelo.stack += this.roundPot;
+		}
+		
 		msg += (winner + " You won " + total + this.chip + " and have " + winner.ceelo.stack + this.chip + " in your stack.");
 		this.chan.send(msg);
 		this.ready();
