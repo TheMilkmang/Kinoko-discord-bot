@@ -1,7 +1,7 @@
 var config = require('../json/config.json');
 var bank = require('./bank.js');
 
-exports.Ceelo = function(chan, currency){
+exports.Ceelo = function(chan, currency, minBet, minStack){
 	this.chan = chan;
 	this.currency = currency.name;
 	this.chip = currency.emoji;
@@ -14,8 +14,8 @@ exports.Ceelo = function(chan, currency){
 	this.rolled = [];
 	
 	this.state = 'idle';
-	this.minBet = 10;
-	this.minStack = 100;
+	this.minBet = minBet;
+	this.minStack = minStack;
 	
 	this.roundPot = 0;
 	

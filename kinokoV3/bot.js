@@ -28,8 +28,8 @@ bot.on('ready', () => {
 	botpost = bot.channels.get(config.botPostID);
 	bellpost = bot.channels.get(config.bellPostID);
 	chanGeneral = bot.channels.get(config.generalID);
-	cgame = new ceelo.Ceelo(botpost, {name: "mushrooms", emoji: ":mushroom:"});
-		
+	cgame = new ceelo.Ceelo(botpost, {name: "mushrooms", emoji: ":mushroom:"}, 10, 100);
+	pcgame = new ceelo.Ceelo(botpost, {name: "Ujin Currency", emoji: "<:pretzel:363385221976162304>"}, 1, 10);	
 	chanGeneral.fetchMessages({ limit: 15 })
   .then(messages => console.log(`Received ${messages.size} messages`))
   .catch(console.error);
@@ -111,11 +111,11 @@ bot.on('message', message => {
 		
 		if(message.mentions.users.first()){
 			balance = bank.getBalanceUser(message.mentions.users.first());
-			sendMessage(message.channel, message.mentions.users.first().username + " has " + balance + config.currency);
+			sendMessage(message.channel, message.mentions.users.first().username + " has " + balance.toLocaleString() + config.currency);
 			return;
 		}
 		
-		sendMessage(message.channel, "You have " + balance + config.currency);
+		sendMessage(message.channel, "You have " + balance.toLocaleString() + config.currency);
 	}
 	
 	if(message.content.startsWith(']send ')){
@@ -338,6 +338,36 @@ bot.on('message', message => {
 		cgame.getStack(message.author);
 	}
 	
+	if(message.content.startsWith("pc]join ")){
+		var args = message.content.split(' ');
+		if(args.length < 2) return;
+		var stack = Math.round(parseInt(args[1]));
+		if(stack <= 0) return;
+		
+		pcgame.join(message.author, stack);
+	}
+	
+	if(message.content == "pc]quit"){
+		pcgame.quit(message.author);
+	}
+	
+	if(message.content.startsWith("pc]bet")){
+		var args = message.content.split(' ');
+		if(args.length < 2) return;
+		
+		var bet = Math.round(parseInt(args[1]));
+		if(bet <= 0) return;
+		pcgame.makeBet(message.author, bet);
+	}
+	
+	if(message.content == "pc]roll"){
+		pcgame.makeRoll(message.author);
+	}
+	
+	if(message.content == "pc]stack"){
+		pcgame.getStack(message.author);
+	}
+	
 });
 
 function sendMessage(channel, message){
@@ -417,7 +447,7 @@ function greediest(message){
 	var array = bank.getRichest(amount);
 	var namesText = "";
 	for(i = 0; i<array.length; i++){
-		namesText = namesText + '\n' + (i+1) + ') ' + array[i].name + "  --- " + array[i].balance + config.currency;
+		namesText = namesText + '\n' + (i+1) + ') ' + array[i].name + "  --- " + array[i].balance.toLocaleString() + config.currency;
 	}		
 	sendMessage(message.channel, "Here are the richest workers. Tell them to share!" + namesText);
 }
@@ -434,26 +464,29 @@ function poorest(message){
 	var array = bank.getPoorest(amount);
 	var namesText = "";
 	for(i = 0; i<array.length; i++){
-		namesText = namesText + '\n' + (i+1) + ') ' + array[i].name + "  --- " + array[i].balance + config.currency;
+		namesText = namesText + '\n' + (i+1) + ') ' + array[i].name + "  --- " + array[i].balance.toLocaleString() + config.currency;
 	}		
 	sendMessage(message.channel, "Here are the poorest workers. Share with your comrades!" + namesText);
 }
 
 function checkUjinMessage(message){
-	if(message.embeds.length){
-		var description = message.embeds[0].description;
-	}else return;
-	if(description === undefined)return;
-	console.log("checking ujin message: " + description);
 	
-	if(description.startsWith("`You received:`")){
-		parseUjinString(description);
+	if(message.embeds.length){
+		var embed = message.embeds[0];
+	}else return;
+	console.log("title: " + message.embeds[0].title);
+	console.log("field 1 name: " + message.embeds[0].fields[1].name);
+	console.log("field 1 value: " + message.embeds[0].fields[1].value);
+
+	if(embed.title.startsWith("Received")){
+		parseUjinString(embed);
 	}
+	
 }
 
-function parseUjinString(description){
-	var fromUser = parseUjinFrom(description);
-	var amount = parseUjinAmount(description);
+function parseUjinString(embed){
+	var fromUser = parseUjinFrom(embed.fields[1].value);
+	var amount = parseUjinAmount(embed);
 		
 	if(amount > 0){
 		amount = Math.floor(amount);
@@ -464,20 +497,21 @@ function parseUjinString(description){
 	
 }
 
-function parseUjinFrom(description){
-	var startIndex = description.indexOf(">");
-	var newString = description.slice(startIndex);
-	var result = newString.match(/(?:^|\D)(\d{18})(?=\D|$)/g)[0].slice(1);
-	console.log("\n ujin from: " + result);
+function parseUjinFrom(str){
+	var endIndex = str.indexOf(") - .") - 18;
+	var endIndex2 = endIndex - 2;
+	var result = str.substr( endIndex, endIndex2);
+	console.log("endIndex: " + endIndex + "endIndex2: " + endIndex2);
+	console.log("ujin from id: " + result);
 	return bot.users.get(result);
 }
 
-function parseUjinAmount(description){
-	var newString = description.slice(16, 26);
-	var numEndIndex = newString.indexOf("<");
-	var result = newString.substr(0, numEndIndex);
-	
-	console.log("\n amount: " + result);
+function parseUjinAmount(embed){
+		
+	if(embed.fields[0].name == "Amount"){
+		var result = embed.fields[0].value;
+	}
+	console.log("amount: " + result);
 	return parseInt(result);
 }
 
