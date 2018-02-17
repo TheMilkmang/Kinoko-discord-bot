@@ -79,7 +79,18 @@ bot.on('message', message => {
 	}
 	
 	if (message.channel != botpost) return;
-	
+		
+	if(message.content.startsWith(']')){
+	   try{
+			if(message.member.roles.has('317763990270902274')){
+				sendMessage(message.channel, "You are command muted. Do not bot pretzels or mushrooms boyo.");
+				return; //command mute role
+			}
+		}
+		catch(err) {
+			console.log(err);
+		}
+	}
 	
 	if (message.content == ']test') {
 		sendMessage(message.channel, 'toast');
@@ -368,6 +379,21 @@ bot.on('message', message => {
 		pcgame.getStack(message.author);
 	}
 	
+	if(message.content == "]timely"){
+		sendMessage(message.channel, ".timely");
+	}
+	
+	if(message.content.startsWith("]interest")){
+		bank.claimPretzelInterest(message);
+	}
+	
+	if(message.content.startsWith("]totalInt")){
+	   bank.getTotalInterest(message);
+	}
+	
+	if(message.content.startsWith(']flipStats')){
+		sendMessage(message.channel, "Kinoko has earned " + bank.getFlipProfit() + config.currency + " from bet flips.");
+	}
 });
 
 function sendMessage(channel, message){
@@ -498,10 +524,10 @@ function parseUjinString(embed){
 }
 
 function parseUjinFrom(str){
-	var endIndex = str.indexOf(") - .") - 18;
-	var endIndex2 = endIndex - 2;
-	var result = str.substr( endIndex, endIndex2);
-	console.log("endIndex: " + endIndex + "endIndex2: " + endIndex2);
+	var index = str.indexOf(") - .");
+	var endIndex = index - 18;
+	var result = str.substr( endIndex, 18);
+	console.log("endIndex: " + endIndex);
 	console.log("ujin from id: " + result);
 	return bot.users.get(result);
 }
@@ -555,10 +581,7 @@ function buyPretzels(message){
 }
 
 
-function getTimely(){
-	sendMessage(botpost, ".timely");
-	setTimeout(getTimely, 9660000);
-}
+
 
 function update(){
 	var message = waifu.updateAll();
@@ -568,7 +591,6 @@ function update(){
 	setTimeout(update, 60000);
 }
 //setTimeout(update, 60000);
-setTimeout(getTimely, 9666666);
 
 bot.login(config.token);
 

@@ -44,7 +44,7 @@
 ]population				How many people have used these mushroom commands at least once
 
 ---------------------------------
-Pretzel Exchange Stuff
+Pretzel Stuff
 
 #UjinBot command#
 .give # @kinoko			Deposits a certain amount of pretzels/flowers to the bank of kinoko
@@ -53,6 +53,12 @@ Pretzel Exchange Stuff
 ]p
 
 ]withdraw #				Withdraws an amount of pretzels/flowers from the bank of kinoko
+
+]interest				claims your interest for the day. Right now it's set at 0.5% claimable every 12 hours. Be sure to deposit pretzels first!
+]totalInt				shows you how much interest you've earned total with Bank of Kinoko
+
+-- 
+exchange
 
 ]sellorders				view the current pretzels being sold
 ]buyorders				view the current buy orders for pretzels

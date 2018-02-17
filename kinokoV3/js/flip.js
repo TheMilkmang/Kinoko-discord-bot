@@ -31,9 +31,11 @@ exports.betFlip = function(message, bank){
 	if(bank.getBalanceUser(message.author) >= bet){
 		if(choice == coin[0]){
 			bank.addBalanceUser(message.author, bet);
+			bank.addFlipPayout(bet);
 			return(coin[1] + " You won " + bet + config.currency + "!");
 		}else{
 			bank.subtractBalanceUser(message.author, bet);
+			bank.addFlipIncome(bet);
 			return(coin[1] + " Aww, better luck next time! You lost a whole " + bet + config.currency);
 		}
 	}else{
@@ -58,9 +60,11 @@ exports.betFlipAll = function(message, bank){
 	
 	if(userBalance > 0){
 		if(choice == coin[0]){
+			bank.addFlipPayout(userBalance + (userBalance*allBonus) );
 			bank.addBalanceUser(message.author, userBalance+(userBalance*allBonus));
 			return(coin[1] + " Wow! You went all in and won " + userBalance + config.currency + "! You also got an extra " + (allBonus*100) + "% bonus of " + (userBalance*allBonus) + config.currency);
 		}else{
+			bank.addFlipIncome(userBalance);
 			bank.subtractBalanceUser(message.author, userBalance);
 			return(coin[1] + " You lost it all, loser. A whole " + userBalance + config.currency);
 		}

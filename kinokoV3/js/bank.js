@@ -2,6 +2,8 @@ var bank = require('../json/bank.json');
 var config = require('../json/config.json');
 var save = require('./save.js');
 
+var kinokoID = '401684543326781440';
+
 exports.getBank = function(){
 	return bank;
 };
@@ -160,6 +162,10 @@ exports.getRichest = function(amount){
 	return returned;
 };
 
+exports.getItemRichest = function(amount, item){
+	
+}
+
 //inventory
 
 
@@ -229,4 +235,95 @@ exports.getItemBalanceUser = function(user, item){
 		return worker.inventory[invIndex].amount;
 	}
 	return 0;
+};
+
+function interestTimeLeft(user){
+	var d = new Date();
+	var ms = d.getTime();
+	
+	var worker = bankFindByUser(user);
+	if(worker.hasOwnProperty('interestTimer')){
+		return worker.interestTimer - ms;
+	}else{
+		worker.interestTimer = 0;
+		return -1;
+	}
+}
+
+function updateInterestTime(user){
+	var d = new Date();
+	var ms = d.getTime();
+	var worker = bankFindByUser(user);
+	
+	worker.interestTimer = ms + config.interestDelay;
+
+}
+exports.claimPretzelInterest = function(message){
+	var balance = exports.getItemBalanceUser(message.author, "Ujin Currency");
+	var worker = bankFindByUser(message.author);
+	
+	if(exports.getItemBalanceUser(message.author, "Ujin Currency") >= 1){
+			
+		if(interestTimeLeft(message.author) <= 0){
+			var interest = Math.floor(balance * config.interestRate);
+		}else{
+			message.channel.send(message.author + "You already got your interest today! You can claim it again in " + interestTimeLeft(message.author)/3600000 + " hours.");
+			return;
+		}
+	}else{
+		message.channel.send("You don't have any pretzels in the bank! Use .give # kinoko   to deposit some!");
+		return;
+	}
+	
+	if(interest >= 1 && interest < 1000){
+		exports.addItemUser(message.author, "Ujin Currency", interest);
+		message.channel.send(`${message.author.username} You earned ${interest}${config.ujinCurrency} on your ${balance}${config.ujinCurrency} balance! The interest rate is ${config.interestRate*100}% You can claim again in ${config.interestDelay/3600000} hours.`);
+		updateInterestTime(message.author);
+		if(worker.hasOwnProperty('totalInterest')){
+		   worker.totalInterest += interest;
+		}else{
+			worker.totalInterest = interest;
+		}
+		save.jsonSave(bank, 'bank.json');
+		return;
+	}else{
+		message.channel.send("You need enough balance to earn at least 1 pretzel! The interest rate is " + (config.interestRate * 100) + "%");
+		return;
+	}
+};
+
+exports.getTotalInterest = function(message){
+	var worker = bankFindByUser(message.author);
+	if(!worker.hasOwnProperty('totalInterest')){
+		worker.totalInterest = 0;
+	}
+	
+	message.channel.send(message.author + "You have earned a total of " + worker.totalInterest + config.ujinCurrency + " with the Bank of Kinoko!");
+		
+};
+
+exports.addFlipPayout = function(amount){
+	var kinoko = bankFindByID(kinokoID);
+	
+	if(kinoko.hasOwnProperty('flipPayout')){
+		kinoko.flipPayout += amount;
+	}else{
+		kinoko.flipPayout = amount;
+	}
+};
+
+exports.addFlipIncome = function(amount){
+	var kinoko = bankFindByID(kinokoID);
+	
+	if(kinoko.hasOwnProperty('flipIncome')){
+		kinoko.flipIncome += amount;
+	}else{
+		kinoko.flipIncome = amount;
+	}
+};
+
+exports.getFlipProfit = function(){
+	var kinoko = bankFindByID(kinokoID);
+	
+	return(kinoko.flipIncome - kinoko.flipPayout);
 };
