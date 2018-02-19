@@ -1,7 +1,10 @@
 var config = require('../json/config.json');
 var bank = require('./bank.js');
 
-exports.Ceelo = function(chan, currency, minBet, minStack){
+var kinokoID = '401684543326781440';
+
+
+exports.Ceelo = function(chan, currency, minBet){
 	this.chan = chan;
 	this.currency = currency.name;
 	this.chip = currency.emoji;
@@ -10,163 +13,58 @@ exports.Ceelo = function(chan, currency, minBet, minStack){
 	
 	this.players = [];
 	this.needRoll = [];
-	this.needBet = [];
 	this.rolled = [];
 	
-	this.state = 'idle';
+	this.state = 'idle';  //idle, betting, rolling
 	this.minBet = minBet;
-	this.minStack = minStack;
 	
 	this.roundPot = 0;
 	
+	this.betTimeout = -1;
+	this.rollTimeout = -1;
+	
 };
 
-exports.Ceelo.prototype.join = function(user, stack){
-	
-	if(this.players.includes(user)){
-		
-        this.chan.send(this.msgPrefix + user + " You are already in the game!");
+exports.Ceelo.prototype.setBet = function(user, amount){
+	if(amount < this.minBet){
+		this.chan.send(this.msgPrefix + user + " The minimum bet is " + this.minBet + this.chip);
 		return false;
+	}
+
+	if(bank.getItemBalanceUser(user, this.currency) >= amount * 2){
 		
-    }
-	
-	user.ceelo = { stack: 0, bet: 0, roll: [], rollScore: 0, numRolls: 0, rollString: '' }
-	
-	if(this.addStack(user, stack)){
-		var numPlayers = this.players.push(user);
+		user.ceelo = { bet: amount, collateral: amount*2, roll: [], rollScore: 0, numRolls: 0, rollString: '' }
+		bank.subtractItemUser(user, this.currency, amount*2);
+		
+		this.players.push(user);
+		this.needRoll.push(user);
+		this.chan.send(this.msgPrefix + user.username + " Has placed a bet of " + amount + this.chip);
+		
+		return true;
 	}else{
-		this.chan.send(this.msgPrefix + user + " that amount isn't valid. The minimum stack to bring is " + this.minStack + this.chip);
+		this.chan.send(this.msgPrefix + user + " You need at least 2x your bet in your balance in case you have to pay double.");
 		return false;
 	}
-	
-	if(this.state == 'idle'){
-		
-		this.chan.send(this.msgPrefix + user.username + " has joined cee-lo with a stack of " + stack + this.chip);
-		
-		if(numPlayers >= 2){
-			this.ready();
-		}
-		return;
-		
-	}
-	
-	if(this.state == 'ready'){
-		this.chan.send(this.msgPrefix + user.username + " has joined cee-lo with a stack of " + stack + this.chip);
-	}
-	
-	if(this.state == 'betting' || this.state == 'rolling'){
-		this.chan.send(this.msgPrefix + user.username + " has joined cee-lo with a stack of " + stack + this.chip + ". They can play in the next round.");
-	}
-	
 };
-
-	
-
-exports.Ceelo.prototype.quit = function(user){
-	
-	this.quitGame = function(){
-		user.ceelo.bet = 0;
-		
-		this.chan.send(this.msgPrefix + user.username + " You have left the game and withdrawed your stack of " + user.ceelo.stack + this.chip);
-		this.withdrawStack(user);
-		this.players.splice( this.players.indexOf(user), 1);
-		
-		if(this.needBet.includes(user)){
-			this.needBet.splice( this.needBet.indexOf(user), 1);
-		}
-		
-		if(this.needRoll.includes(user)){
-			this.needRoll.splice( this.needRoll.indexOf(user), 1);
-		}
-	};
-	
-	if(!this.players.includes(user)){
-		this.chan.send(this.msgPrefix + user + " You are not in the game.");
-		return false;
-	}
-	
-	if(this.state == 'idle'){
-		this.quitGame();
-	}
-	
-	if(this.state == 'ready'){
-		this.quitGame();
-		
-		if(this.players.length <= 1){
-			this.idle();
-		}
-	}
-	
-	if(this.state == 'betting'){
-		if(user.ceelo.bet == 0){
-			this.quitGame();
-		}else if(this.players.length == 1){
-			this.quitGame();
-			this.idle();
-		}else{
-			this.chan.send(this.msgPrefix + user + " Please wait until your bet is done to quit!");
-		}
-		return;
-	}
-	
-	if(this.state == 'rolling'){
-		this.chan.send(this.msgPrefix + user + " Please wait until your bet is done to quit!");
-		return;
-	}
-	
-};
-
 exports.Ceelo.prototype.makeBet = function(user, amount){
 	
-	if(!this.players.includes(user)){
-		this.chan.send(this.msgPrefix + user + " you are not in the game.");
+	if(this.players.includes(user)){
+		this.chan.send(this.msgPrefix + user + " you have already placed a bet of " + user.ceelo.bet + this.chip);
 		return;
 	}
 	
-	this.setBet = function(){
-		if(amount < this.minBet){
-			this.chan.send(this.msgPrefix + user + " The minimum bet is " + this.minBet + this.chip);
-			return false;
-		}
-		
-		if(user.ceelo.stack >= amount * 2){
-			if(this.state == 'ready'){
-				this.betting();
-			}
-			user.ceelo.bet = amount;
-			this.needBet.splice(this.needBet.indexOf(user), 1);
-			this.needRoll.push(user);
-			this.chan.send(this.msgPrefix + user.username + " Has placed a bet of " + amount + this.chip);
-			return true;
-		}else{
-			this.chan.send(this.msgPrefix + user + " You need at least 2x your bet in your stack in case you have to pay double.");
-			return false;
-		}
-	};
-	
 	if(this.state == 'idle'){
-		this.chan.send(this.msgPrefix + user + " Need at least 2 people to start a game.");
-	}
-	
-	if(this.state == 'ready'){
-		
-		if(this.setBet()){
+		if(this.setBet(user, amount)){
+			var self = this;
+			this.betTimeout = setTimeout(function() { self.rolling() }, 15000);
+			this.chan.send(this.msgPrefix + "Place your bets everyone! Rolling will begin in 15 seconds. Use c]force to start immediately");
+			this.betting();
 			return;
 		}
-		
 	}
 	
 	if(this.state == 'betting'){
-		if(this.needBet.includes(user)){
-			if(this.setBet()){
-
-				if(this.needBet.length == 0){
-					this.rolling();
-					return;
-				}
-				
-			}
-		}
+		this.setBet(user, amount);
 	}
 	
 	if(this.state == 'rolling'){
@@ -176,35 +74,34 @@ exports.Ceelo.prototype.makeBet = function(user, amount){
 	
 };
 
+
+exports.Ceelo.prototype.calcScore = function(dice){
+	if(dice[0] == dice[1] && dice[0] == dice[2]) return(dice[0]*10);
+		
+	if(dice[0] == dice[1]) return dice[2];
+	if(dice[0] == dice[2]) return dice[1];
+	if(dice[1] == dice[2]) return dice[0];
+
+	if(dice.includes(4) && dice.includes(5) && dice.includes(6)) return 100;
+	if(dice.includes(1) && dice.includes(2) && dice.includes(3)) return -1;
+
+	return 0;
+};
+
+exports.Ceelo.prototype.newRoll = function(){
+	var roll = [Math.round( (Math.random() * 5) + 1), Math.round( (Math.random() * 5) + 1), Math.round( (Math.random() * 5) + 1)];
+	return roll;
+};
+
 exports.Ceelo.prototype.makeRoll = function(user){
 	
-	this.calcScore = function(dice){
-		if(dice[0] == dice[1] && dice[0] == dice[2]) return(dice[0]*10);
-		
-		if(dice[0] == dice[1]) return dice[2];
-		if(dice[0] == dice[2]) return dice[1];
-		if(dice[1] == dice[2]) return dice[0];
-		
-		if(dice.includes(4) && dice.includes(5) && dice.includes(6)) return 100;
-		if(dice.includes(1) && dice.includes(2) && dice.includes(3)) return -1;
-		
-		return 0;
-	}
-	
-	this.newRoll = function(){
-		var roll = [Math.round( (Math.random() * 5) + 1), Math.round( (Math.random() * 5) + 1), Math.round( (Math.random() * 5) + 1)];
-		return roll;
-	}
-	
-	
-	
-	if(this.state == 'idle' || this.state == 'ready'){
-		this.chan.send(this.msgPrefix + user.username + " a game has not started yet. Once there's 2+ people place your bets and then roll.");
+	if(this.state == 'idle'){
+		this.chan.send(this.msgPrefix + user.username + " Make a bet and then wait for it to be time to roll!");
 		return;
 	}
 	
 	if(this.state == 'betting'){
-		this.chan.send(this.msgPrefix + " we are waiting for " + this.needBet[0] + " to place a bet! Bet 0 if you want to skip.");
+		this.chan.send(this.msgPrefix + user.username + " It is not yet time to roll. Wait or do c]force to start!");
 		return;
 	}
 	
@@ -214,7 +111,7 @@ exports.Ceelo.prototype.makeRoll = function(user){
 			this.chan.send(this.msgPrefix + user + " it's not your turn to roll. It is " + this.needRoll[0] + " 's turn to roll.");
 			return;
 		}
-			
+		clearTimeout(this.rollTimeout);
 		user.ceelo.roll = this.newRoll();
 		user.ceelo.rollScore = this.calcScore(user.ceelo.roll);
 		user.ceelo.numRolls += 1;
@@ -224,6 +121,8 @@ exports.Ceelo.prototype.makeRoll = function(user){
 
 			if(user.ceelo.numRolls < 3){
 				this.chan.send(this.msgPrefix + user.username + user.ceelo.rollStr + " Shucks. Roll again, you have " + (3 - user.ceelo.numRolls) + " rolls left.");
+				var self = this;
+				this.rollTimeout = setTimeout( function(){ self.makeRoll( self.needRoll[0] ) }, 30000);
 				return;
 			}else{
 				this.chan.send(this.msgPrefix + user.username + user.ceelo.rollStr + " Wow, that was your last roll and you got nothing." );
@@ -238,7 +137,9 @@ exports.Ceelo.prototype.makeRoll = function(user){
 		this.rolled.push(user);
 
 		if(this.needRoll.length){
-			this.chan.send(this.msgPrefix + this.needRoll[0] + " It is your turn to roll!");
+			this.chan.send(this.msgPrefix + this.needRoll[0] + " It is your turn to roll! If you don't roll within 30 seconds, then it will be done automatically.");
+			var self = this;
+			this.rollTimeout = setTimeout( function(){ self.makeRoll( self.needRoll[0] ) }, 30000);
 		}else{
 			this.payout();
 		}
@@ -248,105 +149,34 @@ exports.Ceelo.prototype.makeRoll = function(user){
 	
 };
 
-exports.Ceelo.prototype.getStack = function(user){
-	if(this.players.includes(user)){
-		this.chan.send(user.username + " you have " + user.ceelo.stack + this.chip + " in your cee-lo stack.");
-	}else{
-		this.chan.send(user.username + " you are not in the game.");
-	}
-}
-
-exports.Ceelo.prototype.addStack = function(user, stack){
-	if(stack < this.minStack){
-		return false;
-	}
-	
-	if(this.currency == "mushrooms"){
-		
-		if(bank.subtractBalanceUser(user, stack) ){
-			
-			user.ceelo.stack = stack;
-			
-			return true;
-		}
-			
-	}else if(bank.subtractItemUser(user, this.currency, stack)){
-			
-		user.ceelo.stack = stack;
-			
-		return true;
-	}
-	
-	return false;
-	
-};
-
-exports.Ceelo.prototype.withdrawStack = function(user){
-	if(this.currency == "mushrooms"){
-		
-		bank.addBalanceUser(user, user.ceelo.stack)
-			
-		user.ceelo.stack = 0;
-		return true;
-			
-	}else{
-		bank.addItemUser(user, this.currency, user.ceelo.stack);
-			
-		user.ceelo.stack = 0;
-		return true;
-	}
-	
-	return false;
-};
-
 exports.Ceelo.prototype.idle = function(){
 	this.needRoll = [];
-	this.needBet = [];
-	
-	if(this.state == 'betting'){
-		if(this.players.length == 1){
-			this.players[0].ceelo.bet = 0;
-			this.chan.send(this.msgPrefix + this.players[0] + " You're the only one left. Any bets have been moved to your stack. You have a stack of " + this.players[0].ceelo.stack + this.chip);
-		}else if(this.players.length > 1){
-			this.chan.send("wtf tell mees to fix his shit, it's idle and there's more than 1 person");
-		}
-	}
+	this.rolled = [];
+	this.players = [];
 	
 	this.state = 'idle';
 };
 
-exports.Ceelo.prototype.ready = function(){
-	this.needRoll = [];
-	this.needBet = [];
-	this.rolled = [];
-	this.roundPot = 0;
-	
-	if(this.players.length >= 2){
-		this.state = 'ready';
-		this.chan.send(this.msgPrefix + "We have enough players and are ready to start! Place a bet to start a round or wait for more people to join.");
-	}
-	
-};
-
 exports.Ceelo.prototype.betting = function(){
-	if(this.state == 'ready'){
-		this.state = 'betting';
-		this.needBet = this.players.slice();
-	}
-	
-	for(var i = 0; i < this.players.length; i++){
-		this.players[i].ceelo.bet = 0;
-		this.players[i].ceelo.roll = [];
-		this.players[i].ceelo.rollScore = 0;
-		this.players[i].ceelo.numRolls = 0;
-	}
+	this.state = 'betting';
 
 };
 
 exports.Ceelo.prototype.rolling = function(){
-	this.state = 'rolling';
+	if(this.players.length == 1){
+		this.chan.send(this.msgPrefix + this.players[0] + " No one  bet against you. Your bet has been returned!");
+		bank.addItemUser(this.players[0], this.currency, this.players[0].ceelo.collateral);
+		this.players[0].ceelo.collateral = 0;
+		clearTimeout(this.rollTimeout);
+		this.idle();
+	}else{
+		this.chan.send(this.msgPrefix + "All bets are placed! " + this.needRoll[0] + " it is your turn to roll! If you don't roll within 30 seconds then it will be done automatically.");
+		this.state = 'rolling';
+	}
 	
-	this.chan.send("All bets are placed! " + this.needRoll[0] + " it is your turn to roll!");
+	var self = this;
+	this.rollTimeout = setTimeout(  function(){  self.makeRoll( self.needRoll[0] ) }, 30000);
+	
 };
 
 exports.Ceelo.prototype.payout = function(){
@@ -358,6 +188,7 @@ exports.Ceelo.prototype.payout = function(){
 	var losers = [];
 	var mult = 1;
 	var tiedBetsTotal = 0;
+	
 	this.rolled.sort( (a,b) => b.ceelo.rollScore - a.ceelo.rollScore);
 	
 	if(this.rolled[0].ceelo.rollScore > this.rolled[1].ceelo.rollScore){
@@ -390,14 +221,18 @@ exports.Ceelo.prototype.payout = function(){
 			if(mult == 2 || losers[i].ceelo.rollScore == -1){
 				var amt = Math.min(tiedBetsTotal, losers[i].ceelo.bet*2);
 				loseMsg += ( losers[i].username + ' lost double for a total of ' + amt + this.chip + ', ' );
-				losers[i].ceelo.stack -= amt;
-				this.roundPot += amt;
 			}else{
 				var amt = Math.min(tiedBetsTotal, losers[i].ceelo.bet);
 				loseMsg += ( losers[i].username + ' lost ' + amt + this.chip + ', ');
-				losers[i].ceelo.stack -= amt;
-				this.roundPot += amt;
 			}
+			losers[i].ceelo.bet = 0;
+			losers[i].ceelo.collateral -= amt;
+			this.roundPot += amt;
+			
+			if(losers[i].ceelo.collateral >= 1){
+				bank.addItemUser(losers[i], this.currency, losers[i].ceelo.collateral);
+			}
+
 		}
 		this.chan.send("Looks like we have a tie between " + tiedStr + "! " + loseMsg + " The extra pot for the tied players is at " + this.roundPot + " The tied players will have to reroll to determine who wins! First one to roll is " + this.needRoll[0]);
 		return;
@@ -417,26 +252,63 @@ exports.Ceelo.prototype.payout = function(){
 			if(winner.ceelo.rollScore >= 100 || this.rolled[i].ceelo.rollScore == -1){
 				mult = 2;
 				msg += (this.rolled[i].username + " lost double for a total of " + (lowBet * mult) + this.chip);
+				this.rolled[i].ceelo.collateral -= (lowBet * mult);
 			}else{
 				mult = 1;
 				msg += (this.rolled[i].username + " lost " + lowBet + this.chip);
+				this.rolled[i].ceelo.collateral -= lowBet;
 			}
-			winner.ceelo.stack += (lowBet * mult);
-			this.rolled[i].ceelo.stack -= (lowBet * mult);
-			msg += (" they have " + this.rolled[i].ceelo.stack + this.chip + "left in their stack \n");
+			bank.addItemUser(this.rolled[i], this.currency, this.rolled[i].ceelo.collateral);
+			msg += (" they now have " + bank.getItemBalanceUser(this.rolled[i], this.currency).toLocaleString() + this.chip);
 			total += (lowBet * mult);
 		}
 		if(this.roundPot > 0){
 			msg += ("The extra pot from ties was: " + this.roundPot + this.chip);
 			total += this.roundPot;
-			winner.ceelo.stack += this.roundPot;
+			bank.addItemUser(winner,  this.currency, this.roundPot);
 		}
-		
-		msg += (winner + " You won " + total + this.chip + " and have " + winner.ceelo.stack + this.chip + " in your stack.");
+		var rake = Math.floor(total * 0.01) + 1;
+		this.addStats(rake, total);
+		total -= rake;
+		bank.addItemUser(winner, this.currency, total + winner.ceelo.collateral);
+		winner.ceelo.collateral = 0;
+		msg += (winner + " You won " + total + this.chip + " and now have " + bank.getItemBalanceUser(winner, this.currency).toLocaleString() + this.chip + " in your stack. Bank of Kinoko took a 1 + 1% rake of: " + rake);
 		this.chan.send(msg);
-		this.ready();
+		this.idle();
 		return;
 		
 	}
 	
 };
+
+exports.Ceelo.prototype.addStats = function(rake, total){
+	var kinoko = bank.bankFindByID(kinokoID);
+	if(this.currency == 'mushrooms'){
+		if(kinoko.hasOwnProperty('ceeloMushroomStats')){
+			kinoko.ceeloMushroomStats.rake += rake;
+			kinoko.ceeloMushroomStats.total += total;
+			kinoko.ceeloMushroomStats.games += 1;
+		}else{
+			kinoko.ceeloMushroomStats = { rake: rake, total: total, games: 1};
+		}
+		
+	}else if(this.currency == 'Ujin Currency'){
+		if(kinoko.hasOwnProperty('ceeloUjinStats')){
+			kinoko.ceeloUjinStats.rake += rake;
+			kinoko.ceeloUjinStats.total += total;
+			kinoko.ceeloUjinStats.games += 1;
+		}else{
+			kinoko.ceeloUjinStats = { rake: rake, total: total, games: 1};
+		}
+	}
+};
+
+exports.Ceelo.prototype.getStats = function(){
+	var kinoko = bank.bankFindByID(kinokoID);
+	if(this.currency == 'mushrooms'){
+		this.chan.send(this.msgPrefix + " Mushroom game stats. Games played: " + kinoko.ceeloMushroomStats.games + " Total Wagered: " + kinoko.ceeloMushroomStats.total + " Rake collected: " + kinoko.ceeloMushroomStats.rake);
+	}else if( this.currency == 'Ujin Currency'){
+		this.chan.send(this.msgPrefix + " Pretzel game stats. Games played: " + kinoko.ceeloUjinStats.games + " Total Wagered: " + kinoko.ceeloUjinStats.total + " Rake collected: " + kinoko.ceeloUjinStats.rake);
+	}
+};
+

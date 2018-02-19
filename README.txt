@@ -98,24 +98,20 @@ Don't abuse this or I'll have to restrict these commands and have the mods babys
 ---------------------------------
 Cee-Lo
 
-c]join <stack> 			joins the current cee-lo game with a stack of <stack> (you can only bet with what's in your stack not your total balance)
-c]quit					quits and puts your stack back into your balance
-
-c]bet <bet>				places a bet. You can lose up to twice this amount if you roll a 1-2-3 or someone rolls a 4-5-6! 
+c]bet <bet>				Starts a game and places a bet. You can lose up to twice this amount if you roll a 1-2-3 or someone rolls a 4-5-6! 
 c]roll					Makes your roll
 
-c]stack					shows your stack. To add to it quit the game then rejoin with a larger stack.
 
+https://en.wikipedia.org/wiki/Cee-lo 
 
-This is Cee-Lo with a few rules specific to making it easy to use in chat. It's an easy dice game. Everyone takes a turn rolling the dice. You have up to 3 rolls to get a valid roll. If you don't then your score is 0. The only way you can win with a 0 is if someone rolls a 1-2-3 and has to pay double. I'll put the score chart below. Everybody rolls, there is no automatic win or loss. There is no bank, everyone's bet is individual. The winner wins everyone's bets. If there's a tie then those who have tied must re-roll. 
+Everyone takes a turn rolling the dice. You have up to 3 rolls to get a valid roll. If you don't then your score is 0. The only way you can win with a 0 is if someone rolls a 1-2-3 and has to pay double. I'll put the score chart below. Everybody rolls, if there's a tie then tied players reroll. The winner wins everyone's bets up to the amount that they wagered (so if you bet 100 and your opponent bet 500, you only get 100 of thir bet) 
+
+Valid Rolls:
 
 4-5-6	 	The highest roll. Everyone must pay double!
 trips		Higher than a single point. 5-5-5 beats 3-3-3 and so on. 
 point		A point is scored by rolling 2 dice of the same number, and then the one left out is your point. So 6-6-3 is a point of 3, 4-4-5 is a point of 5 and beats the former.
 1-2-3		The lowest you can roll. You pay double!! 
-
-
-
 
 ---------------------------------
 

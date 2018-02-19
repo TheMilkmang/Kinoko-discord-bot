@@ -28,8 +28,8 @@ bot.on('ready', () => {
 	botpost = bot.channels.get(config.botPostID);
 	bellpost = bot.channels.get(config.bellPostID);
 	chanGeneral = bot.channels.get(config.generalID);
-	cgame = new ceelo.Ceelo(botpost, {name: "mushrooms", emoji: ":mushroom:"}, 10, 100);
-	pcgame = new ceelo.Ceelo(botpost, {name: "Ujin Currency", emoji: "<:pretzel:363385221976162304>"}, 1, 10);	
+	cgame = new ceelo.Ceelo(botpost, {name: "mushrooms", emoji: ":mushroom:"}, 5);
+	pcgame = new ceelo.Ceelo(botpost, {name: "Ujin Currency", emoji: "<:pretzel:363385221976162304>"}, 5);	
 	chanGeneral.fetchMessages({ limit: 15 })
   .then(messages => console.log(`Received ${messages.size} messages`))
   .catch(console.error);
@@ -319,19 +319,6 @@ bot.on('message', message => {
 	   tts.echoTTS(message);
 	}
 	
-	if(message.content.startsWith("c]join ")){
-		var args = message.content.split(' ');
-		if(args.length < 2) return;
-		var stack = Math.round(parseInt(args[1]));
-		if(stack <= 0) return;
-		
-		cgame.join(message.author, stack);
-	}
-	
-	if(message.content == "c]quit"){
-		cgame.quit(message.author);
-	}
-	
 	if(message.content.startsWith("c]bet")){
 		var args = message.content.split(' ');
 		if(args.length < 2) return;
@@ -345,21 +332,8 @@ bot.on('message', message => {
 		cgame.makeRoll(message.author);
 	}
 	
-	if(message.content == "c]stack"){
-		cgame.getStack(message.author);
-	}
-	
-	if(message.content.startsWith("pc]join ")){
-		var args = message.content.split(' ');
-		if(args.length < 2) return;
-		var stack = Math.round(parseInt(args[1]));
-		if(stack <= 0) return;
-		
-		pcgame.join(message.author, stack);
-	}
-	
-	if(message.content == "pc]quit"){
-		pcgame.quit(message.author);
+	if(message.content == "c]stats"){
+		cgame.getStats();
 	}
 	
 	if(message.content.startsWith("pc]bet")){
@@ -375,8 +349,8 @@ bot.on('message', message => {
 		pcgame.makeRoll(message.author);
 	}
 	
-	if(message.content == "pc]stack"){
-		pcgame.getStack(message.author);
+	if(message.content == "pc]stats"){
+		pcgame.getStats();
 	}
 	
 	if(message.content == "]timely"){
@@ -392,7 +366,8 @@ bot.on('message', message => {
 	}
 	
 	if(message.content.startsWith(']flipStats')){
-		sendMessage(message.channel, "Kinoko has earned " + bank.getFlipProfit() + config.currency + " from bet flips.");
+		var stats = flip.getFlipStats();
+		sendMessage(message.channel, "Kinoko has hosted " + stats.flips + " flips, and made a profit of " + stats.profit.toLocaleString() + config.currency + " from bet flips. Income: " +  stats.income.toLocaleString() + " Payout: " + stats.payout.toLocaleString());
 	}
 });
 

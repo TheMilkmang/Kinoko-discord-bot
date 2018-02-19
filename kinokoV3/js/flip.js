@@ -1,6 +1,9 @@
 var config = require('../json/config.json');
+var bank = require('./bank.js');
 
 var allBonus = 0.25;
+var kinokoID = '401684543326781440';
+
 
 function flipCoin(){
 		var flip = Math.random();
@@ -29,13 +32,14 @@ exports.betFlip = function(message, bank){
 	}
 	
 	if(bank.getBalanceUser(message.author) >= bet){
+		flipCountUp();
 		if(choice == coin[0]){
 			bank.addBalanceUser(message.author, bet);
-			bank.addFlipPayout(bet);
+			addFlipPayout(bet);
 			return(coin[1] + " You won " + bet + config.currency + "!");
 		}else{
 			bank.subtractBalanceUser(message.author, bet);
-			bank.addFlipIncome(bet);
+			addFlipIncome(bet);
 			return(coin[1] + " Aww, better luck next time! You lost a whole " + bet + config.currency);
 		}
 	}else{
@@ -59,16 +63,54 @@ exports.betFlipAll = function(message, bank){
 	console.log(userBalance);
 	
 	if(userBalance > 0){
+		flipCountUp();
 		if(choice == coin[0]){
-			bank.addFlipPayout(userBalance + (userBalance*allBonus) );
+			addFlipPayout(userBalance + (userBalance*allBonus) );
 			bank.addBalanceUser(message.author, userBalance+(userBalance*allBonus));
 			return(coin[1] + " Wow! You went all in and won " + userBalance + config.currency + "! You also got an extra " + (allBonus*100) + "% bonus of " + (userBalance*allBonus) + config.currency);
 		}else{
-			bank.addFlipIncome(userBalance);
+			addFlipIncome(userBalance);
 			bank.subtractBalanceUser(message.author, userBalance);
 			return(coin[1] + " You lost it all, loser. A whole " + userBalance + config.currency);
 		}
 	}else{
 		return("Nibba, you don't have that much!");
 	}
+};
+
+function addFlipPayout(amount){
+	var kinoko = bank.bankFindByID(kinokoID);
+	
+	if(kinoko.hasOwnProperty('flipPayout')){
+		kinoko.flipPayout += amount;
+	}else{
+		kinoko.flipPayout = amount;
+	}
+}
+
+function addFlipIncome(amount){
+	var kinoko = bank.bankFindByID(kinokoID);
+	
+	if(kinoko.hasOwnProperty('flipIncome')){
+		kinoko.flipIncome += amount;
+	}else{
+		kinoko.flipIncome = amount;
+	}
+}
+
+function flipCountUp(){
+	var kinoko = bank.bankFindByID(kinokoID);
+	
+	if(kinoko.hasOwnProperty('flips')){
+		kinoko.flips += 1;
+	}else{
+		kinoko.flips = 1;
+	}
+	
+}
+
+exports.getFlipStats = function(){
+	var kinoko = bank.bankFindByID(kinokoID);
+	
+	return({ income: kinoko.flipIncome, payout: kinoko.flipPayout, profit: kinoko.flipIncome - kinoko.flipPayout, flips: kinoko.flips });
 };

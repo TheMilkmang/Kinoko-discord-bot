@@ -2,13 +2,12 @@ var bank = require('../json/bank.json');
 var config = require('../json/config.json');
 var save = require('./save.js');
 
-var kinokoID = '401684543326781440';
 
 exports.getBank = function(){
 	return bank;
 };
 
-function bankFindByID(ID){
+exports.bankFindByID = function(ID){
 	for(var i = 0; i<bank.length; i++){
 		if(bank[i].id === ID){
 			return bank[i];
@@ -18,7 +17,7 @@ function bankFindByID(ID){
 }
 
 function bankFindByUser(user){
-	var worker = bankFindByID(user.id);
+	var worker = exports.bankFindByID(user.id);
 	if(worker != -1){
 		return worker;
 	}else{
@@ -164,7 +163,7 @@ exports.getRichest = function(amount){
 
 exports.getItemRichest = function(amount, item){
 	
-}
+};
 
 //inventory
 
@@ -193,6 +192,11 @@ function invHasItem(user, item){
 }
 
 exports.addItemUser = function(user, item, amount){
+	
+	if(item == 'mushrooms'){
+		return exports.addBalanceUser(user, amount);
+	}
+	
 	var worker = bankFindByUser(user);
 	var invIndex = invHasItem(user, item);
 	amount = Math.floor(amount);
@@ -210,6 +214,11 @@ exports.addItemUser = function(user, item, amount){
 };
 
 exports.subtractItemUser = function(user, item, amount){
+	
+	if(item == 'mushrooms'){
+		return exports.subtractBalanceUser(user, amount);
+	}
+	
 	var worker = bankFindByUser(user);
 	var invIndex = invHasItem(user, item);
 	amount = Math.floor(amount);
@@ -228,7 +237,13 @@ exports.subtractItemUser = function(user, item, amount){
 };
 
 exports.getItemBalanceUser = function(user, item){
+	
+	if(item == 'mushrooms'){
+		return exports.getBalanceUser(user);
+	}
+	
 	var worker = bankFindByUser(user);
+	
 	var invIndex = invHasItem(user, item);
 	
 	if(invIndex >= 0){
@@ -302,28 +317,3 @@ exports.getTotalInterest = function(message){
 		
 };
 
-exports.addFlipPayout = function(amount){
-	var kinoko = bankFindByID(kinokoID);
-	
-	if(kinoko.hasOwnProperty('flipPayout')){
-		kinoko.flipPayout += amount;
-	}else{
-		kinoko.flipPayout = amount;
-	}
-};
-
-exports.addFlipIncome = function(amount){
-	var kinoko = bankFindByID(kinokoID);
-	
-	if(kinoko.hasOwnProperty('flipIncome')){
-		kinoko.flipIncome += amount;
-	}else{
-		kinoko.flipIncome = amount;
-	}
-};
-
-exports.getFlipProfit = function(){
-	var kinoko = bankFindByID(kinokoID);
-	
-	return(kinoko.flipIncome - kinoko.flipPayout);
-};
