@@ -1,5 +1,8 @@
 # Kinoko-discord-bot
 
+This bot is not ready to be deployed everywhere yet. Right now it is just being developed and used in 2meirl4meirl discord.
+
+
 ]help		links this or w/e
 
 ---------------------------

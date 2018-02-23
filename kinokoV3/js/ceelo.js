@@ -169,6 +169,7 @@ exports.Ceelo.prototype.rolling = function(){
 		this.players[0].ceelo.collateral = 0;
 		clearTimeout(this.rollTimeout);
 		this.idle();
+		return;
 	}else{
 		this.chan.send(this.msgPrefix + "All bets are placed! " + this.needRoll[0] + " it is your turn to roll! If you don't roll within 30 seconds then it will be done automatically.");
 		this.state = 'rolling';

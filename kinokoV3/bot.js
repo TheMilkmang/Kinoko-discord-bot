@@ -12,6 +12,7 @@ var waifu = require('./js/waifu.js');
 var exchange = require('./js/exchange.js');
 var tts = require('./js/tts.js');
 var ceelo = require('./js/ceelo.js');
+var spin = require('./js/spin.js');
 
 var botpost;
 var bellpost;
@@ -33,6 +34,8 @@ bot.on('ready', () => {
 	chanGeneral.fetchMessages({ limit: 15 })
   .then(messages => console.log(`Received ${messages.size} messages`))
   .catch(console.error);
+	
+	spin.bot = bot;
 	
 });
 
@@ -368,6 +371,11 @@ bot.on('message', message => {
 	if(message.content.startsWith(']flipStats')){
 		var stats = flip.getFlipStats();
 		sendMessage(message.channel, "Kinoko has hosted " + stats.flips + " flips, and made a profit of " + stats.profit.toLocaleString() + config.currency + " from bet flips. Income: " +  stats.income.toLocaleString() + " Payout: " + stats.payout.toLocaleString());
+	}
+	
+	if(message.content == ']avatar'){
+		spin.getAvatar(message);
+
 	}
 });
 
