@@ -117,6 +117,13 @@ point		A point is scored by rolling 2 dice of the same number, and then the one 
 1-2-3		The lowest you can roll. You pay double!! 
 
 ---------------------------------
+]spin choice1;choice 2	Spins a wheel to help you decide! Input as many choices as you want separated by ;
+
+]avatar					This feature was just to test some things. Makes your avatar rotate.
+
+---------------------------------
+
+
 
 DONATE
 

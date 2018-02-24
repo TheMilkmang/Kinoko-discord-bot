@@ -12,6 +12,7 @@ var waifu = require('./js/waifu.js');
 var exchange = require('./js/exchange.js');
 var tts = require('./js/tts.js');
 var ceelo = require('./js/ceelo.js');
+var avatar = require('./js/avatar.js');
 var spin = require('./js/spin.js');
 
 var botpost;
@@ -374,8 +375,13 @@ bot.on('message', message => {
 	}
 	
 	if(message.content == ']avatar'){
-		spin.getAvatar(message);
+		avatar.getAvatar(message);
 
+	}
+	
+	if(message.content.startsWith(']spin ')){
+		spin.spinChoose(message);
+		console.log(bot.user.avatarURL);
 	}
 });
 
