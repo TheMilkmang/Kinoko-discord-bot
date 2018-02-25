@@ -40,8 +40,8 @@ function loadImg(url){
 function makeSpinner(img){
 	return new Promise(function(resolve, reject){
 		
-		var width = img.width;
-		var height = img.height;
+		var width = 128;
+		var height = 128;
 		var canvas = new Canvas(width, height);
 		var ctx = canvas.getContext('2d');
 		var cirImg = new Image();
@@ -53,7 +53,7 @@ function makeSpinner(img){
 		ctx.beginPath();
     	ctx.moveTo(width/2 - 20, height/2 - 20);
 		ctx.lineTo(width/2 + 20, height/2 - 20);
-		ctx.lineTo(width/2, height/2 - 60);
+		ctx.lineTo(width/2, height/2 - 64);
 		ctx.fill();
 		cirImg.onload = function() {
 			console.log('loaded spinnerImg');

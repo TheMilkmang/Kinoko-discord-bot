@@ -18,6 +18,7 @@ var spin = require('./js/spin.js');
 var botpost;
 var bellpost;
 var chanGeneral;
+var trashpost;
 var cgame;
 
 const bot = new Discord.Client();
@@ -30,6 +31,7 @@ bot.on('ready', () => {
 	botpost = bot.channels.get(config.botPostID);
 	bellpost = bot.channels.get(config.bellPostID);
 	chanGeneral = bot.channels.get(config.generalID);
+	trashpost = bot.channels.get('197198331817099266');
 	cgame = new ceelo.Ceelo(botpost, {name: "mushrooms", emoji: ":mushroom:"}, 5);
 	pcgame = new ceelo.Ceelo(botpost, {name: "Ujin Currency", emoji: "<:pretzel:363385221976162304>"}, 5);	
 	chanGeneral.fetchMessages({ limit: 15 })
@@ -82,7 +84,8 @@ bot.on('message', message => {
 		
 	}
 	
-	if (message.channel != botpost) return;
+	if (message.channel == botpost || message.channel == trashpost){
+	}else return;
 		
 	if(message.content.startsWith(']')){
 	   try{
