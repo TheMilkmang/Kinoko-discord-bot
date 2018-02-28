@@ -121,6 +121,9 @@ point		A point is scored by rolling 2 dice of the same number, and then the one 
 
 ]avatar					This feature was just to test some things. Makes your avatar rotate.
 
+
+]bs #m 					Bet Spins # mushrooms. Minimum bet of 100. Max of 10,000.
+
 ---------------------------------
 
 
