@@ -37,9 +37,7 @@ bot.on('ready', () => {
 	chanGeneral.fetchMessages({ limit: 15 })
   .then(messages => console.log(`Received ${messages.size} messages`))
   .catch(console.error);
-	
-	spin.bot = bot;
-	
+		
 });
 
 bot.on('messageReactionRemove', (messageReaction, user) => {
@@ -385,6 +383,14 @@ bot.on('message', message => {
 	if(message.content.startsWith(']spin ')){
 		spin.spinChoose(message);
 		console.log(bot.user.avatarURL);
+	}
+
+	if(message.content.startsWith(']bs ')){
+		spin.betSpin(message);
+	}
+
+	if(message.content.startsWith(']mspinstats')){
+		sendMessage(message.channel, spin.mSpinStats());
 	}
 });
 
