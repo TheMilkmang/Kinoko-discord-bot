@@ -392,6 +392,18 @@ bot.on('message', message => {
 	if(message.content.startsWith(']mspinstats')){
 		sendMessage(message.channel, spin.mSpinStats());
 	}
+
+	if(message.content.startsWith(']sinavatar')){
+		avatar.sin(message);
+	}
+
+	if(message.content.startsWith(']tunnel')){
+		avatar.tunnelAvatar(message);
+	}
+
+	if(message.content.startsWith(']AAA') || message.content.startsWith(']aaa')){
+		avatar.AAA(message);
+	}
 });
 
 function sendMessage(channel, message){
