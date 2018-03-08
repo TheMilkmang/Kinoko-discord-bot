@@ -197,9 +197,10 @@ exports.spinChoose = function(message){
 		makeSpinner(128, 128, img).then( spinner => {
 
 			makeWheel(256, 256, 16, choices).then( wheel => {
-				var stream = spinSpinner(spinner, wheel, choices).stream;
+				var spinned = spinSpinner(spinner, wheel, choices)
+				var stream = spinned.stream;
 				var attachment = new Discord.Attachment(stream, 'test.gif');
-				message.channel.send(endTime - startTime + 'ms. rotation: ' + rotation + ' choice: ' + ( ( (rotation % 360) / (360 / choices.length) )+1), attachment);
+				message.channel.send(endTime - startTime + 'ms. choice: ' + spinned.choice, attachment);
 			});
 
 		});

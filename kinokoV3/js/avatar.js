@@ -110,84 +110,96 @@ exports.getAvatar = function(message){
 };
 
 function makeTunnel(img, frames){
-	var width = img.width*2;
-	var height = img.height*2;
-	var texHeight = img.height;
-	var texWidth = img.width;
-	var canvas = new Canvas(width, height);
-	var ctx = canvas.getContext('2d');
-	var canv2 = new Canvas(img.width, img.height);
-	var buffer1 = canv2.getContext('2d');
-	var encoder = new GIFEncoder(width, height);
-	var stream = encoder.createReadStream();
+	return new Promise(function(resolve, reject){
+		var width = img.width*2;
+		var height = img.height*2;
+		var texHeight = img.height;
+		var texWidth = img.width;
+		var canvas = new Canvas(width, height);
+		var ctx = canvas.getContext('2d');
+		var canv2 = new Canvas(img.width, img.height);
+		var buffer1 = canv2.getContext('2d');
+		var encoder = new GIFEncoder(width, height);
+		var stream = encoder.createReadStream();
 
-	var distanceTable = new Array(height * 2);
-	for (var i = 0; i < height * 2 ; i++) {
-	  distanceTable[i] = new Array(width * 2);
-	}
-
-	var angleTable = new Array(height * 2);
-	for (var i = 0; i < height * 2 ; i++) {
-	  angleTable[i] = new Array(width * 2);
-	}
-
-	encoder.start();
-	encoder.setRepeat(0);   // 0 for repeat, -1 for no-repeat
-	encoder.setDelay(100);  // frame delay in ms 50ms is 20fps
-	encoder.setQuality(20); // image quality. 10 is default.
-	encoder.setTransparent(0x36393e);
-
-	buffer1.drawImage(img, 0, 0, texWidth, texHeight);
-	for(var y = 0; y < height * 2; y++){
-		for(var x = 0; x < width * 2; x++){
-			var ratio = 32;
-			var distance = (ratio * texHeight / Math.sqrt((x - width) *  (x - width) + (y - height) * (y - height))) % texHeight;
-			angle = 0.5 * texWidth * Math.atan2(y - height, x - width) / Math.PI;
-			distanceTable[y][x] = distance;
-			angleTable[y][x] = angle;
-			//console.log("disttable " + distanceTable[y][x] + ' angtable ' + angleTable[y][x] + 'x: ' + x + 'y: ' + y);
+		var distanceTable = new Array(height * 2);
+		for (var i = 0; i < height * 2 ; i++) {
+		  distanceTable[i] = new Array(width * 2);
 		}
-	}
-	console.log("test?");
-	var animation = 2;
-	var shiftX;
-	var ShiftY;
-	var color;
-    var shiftLookX;
-    var shiftLookY;
 
-	for(var i = 0; i < frames; i++){
-		//calculate the shift values out of the animation value
-		shiftX = Math.round(texWidth * 0.5 * animation);
-		shiftY = Math.round(texHeight * 0.25 * animation);
-		shiftLookX = width / 2 + Math.round(width / 2 * Math.sin(animation*1.1));
-		shiftLookY = height / 2 + Math.round(height / 2 * Math.sin(animation));
-		for(var y = 0; y < height; y++){
-			for(var x = 0; x < width; x++){
-				//console.log("or here?");
-			  //get the texel from the texture by using the tables, shifted with the animation values
-			  //color = buffer1.getImageData(50, 50, 1, 1);
-			  var calcX = Math.round((distanceTable[x + shiftLookX][y + shiftLookY] + shiftX)  % texWidth);
-			  var calcY = Math.round((angleTable[x + shiftLookX][y + shiftLookY] + shiftY) % texHeight);
-			  if(calcX < 0){
-			  	calcX += width*2;
-			  }
-			  if(calcY < 0){
-			  	calcY += height*2;
-			  }
-			   //console.log('calcX: ' + calcX + 'calcY: ' + calcY);
-			  color = buffer1.getImageData(calcX, calcY , 1, 1);
-			  ctx.putImageData(color, x, y)
+		var angleTable = new Array(height * 2);
+		for (var i = 0; i < height * 2 ; i++) {
+		  angleTable[i] = new Array(width * 2);
+		}
+
+		encoder.start();
+		encoder.setRepeat(0);   // 0 for repeat, -1 for no-repeat
+		encoder.setDelay(100);  // frame delay in ms 50ms is 20fps
+		encoder.setQuality(20); // image quality. 10 is default.
+		encoder.setTransparent(0x36393e);
+
+		buffer1.drawImage(img, 0, 0, texWidth, texHeight);
+		for(var y = 0; y < height * 2; y++){
+			for(var x = 0; x < width * 2; x++){
+				var ratio = 32;
+				var distance = (ratio * texHeight / Math.sqrt((x - width) *  (x - width) + (y - height) * (y - height))) % texHeight;
+				angle = 0.5 * texWidth * Math.atan2(y - height, x - width) / Math.PI;
+				distanceTable[y][x] = distance;
+				angleTable[y][x] = angle;
+				//console.log("disttable " + distanceTable[y][x] + ' angtable ' + angleTable[y][x] + 'x: ' + x + 'y: ' + y);
 			}
 		}
-		encoder.addFrame(ctx);
-		animation += 0.1;
-	}
-	encoder.finish();
-	var d = new Date();
-	var ms = d.getTime();
-	endTime = ms;
-	return stream;
+		console.log("test?");
+		var animation = 2;
+		var shiftX;
+		var ShiftY;
+		var color;
+	    var shiftLookX;
+	    var shiftLookY;
+
+		function tunnelAnime(i){
+			setTimeout(function(){
+				if(i < frames){
+					shiftX = Math.round(texWidth * 0.5 * animation);
+					shiftY = Math.round(texHeight * 0.25 * animation);
+					shiftLookX = width / 2 + Math.round(width / 2 * Math.sin(animation*1.1));
+					shiftLookY = height / 2 + Math.round(height / 2 * Math.sin(animation));
+					for(var y = 0; y < height; y++){
+						for(var x = 0; x < width; x++){
+							//console.log("or here?");
+						  //get the texel from the texture by using the tables, shifted with the animation values
+						  //color = buffer1.getImageData(50, 50, 1, 1);
+						  var calcX = Math.round((distanceTable[x + shiftLookX][y + shiftLookY] + shiftX)  % texWidth);
+						  var calcY = Math.round((angleTable[x + shiftLookX][y + shiftLookY] + shiftY) % texHeight);
+						  if(calcX < 0){
+						  	calcX += width*2;
+						  }
+						  if(calcY < 0){
+						  	calcY += height*2;
+						  }
+						   //console.log('calcX: ' + calcX + 'calcY: ' + calcY);
+						  color = buffer1.getImageData(calcX, calcY , 1, 1);
+						  ctx.putImageData(color, x, y)
+						}
+					}
+					encoder.addFrame(ctx);
+					animation += 0.1;
+					i++;
+					tunnelAnime(i);
+				}else{
+					encoder.finish();
+					var d = new Date();
+					var ms = d.getTime();
+					endTime = ms;
+					console.log("tunnel made");
+					resolve(stream);
+				}
+			}, 20)
+		}
+		console.log("tunnel anime starting");
+		tunnelAnime(0);
+		
+	});
 }
 
 exports.tunnelAvatar = function(message){
@@ -198,9 +210,11 @@ exports.tunnelAvatar = function(message){
 
 	loadImg(url).then( img => {
 		var avatar = img;
-		var stream = makeTunnel(avatar, 50);
-		var attachment = new Discord.Attachment(stream, 'test.gif');
-		message.channel.send(endTime - startTime + 'ms', attachment);
+		makeTunnel(avatar, 50).then( stream => {
+			var attachment = new Discord.Attachment(stream, 'test.gif');
+			message.channel.send(endTime - startTime + 'ms', attachment);
+		})
+		
 	})
 }
 
