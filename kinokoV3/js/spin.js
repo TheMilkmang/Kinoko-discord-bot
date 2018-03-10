@@ -18,8 +18,14 @@ var kinURL = 'https://cdn.discordapp.com/avatars/401684543326781440/84ec659dcd53
 
 var kinoko = bank.bankFindByID(kinokoID);
 
+var pEmoji = "<:pretzel:363385221976162304>";
+
 if(!kinoko.hasOwnProperty('mushroomSpin')){
 	kinoko.mushroomSpin = {jp: 0, income: 0, outcome: 0, spins: 0};
+}
+
+if(!kinoko.hasOwnProperty('pretzelSpin')){
+	kinoko.pretzelSpin = {income: 0, outcome: 0, spins: 0};
 }
 
 function loadImg(url){
@@ -241,6 +247,15 @@ exports.betSpin = function(message){
 				message.channel.send("Nibba you're broke. Get back to the ditches and earn your pay!");
 				return;
 			}
+		}else if(args[1] == 'ALLp'){
+			var bet = bank.getItemBalanceUser(message.author, 'Ujin Currency');
+			if(bet >= 1){
+				pretzelSpin(message.channel, message.author, bet, true);
+				return;
+			}else{
+				message.channel.send("Please deposit pretzels to Bank of Kinoko by doing .give # kinoko");
+				return;
+			}
 		}else{
 			var bet = Math.floor( parseInt( args[1].substr( 0, args[1].length -1) ) );
 		}
@@ -251,9 +266,10 @@ exports.betSpin = function(message){
 
 		if(currency == 'm'){
 			mushroomSpin(message.channel, message.author, bet, false);
-		}else{
 			return;
-			//pretzelSpin(message.channel, message.author, bet);
+		}else if(currency == 'p'){
+			pretzelSpin(message.channel, message.author, bet, false);
+			return;
 		}
 
 	}else{
@@ -332,4 +348,63 @@ function mushroomSpin(channel, user, bet, all){
 exports.mSpinStats = function(){
 	return(`spins: ${kinoko.mushroomSpin.spins} income: ${kinoko.mushroomSpin.income} outcome: ${kinoko.mushroomSpin.outcome} profit: ${kinoko.mushroomSpin.income - kinoko.mushroomSpin.outcome}`);
 
+}
+
+exports.pSpinStats = function(){
+	return(`spins: ${kinoko.pretzelSpin.spins} income: ${kinoko.pretzelSpin.income} outcome: ${kinoko.pretzelSpin.outcome} profit: ${kinoko.pretzelSpin.income - kinoko.pretzelSpin.outcome}`);
+
+}
+
+function pretzelSpin(channel, user, bet, all){
+	if(bank.subtractItemUser(user, 'Ujin Currency', bet)){
+		var kinImg = loadImg(kinURL);
+		if(user.avatarURL == null){
+			var url = kinURL;
+		}else{
+			var url = user.avatarURL.split('?')[0];
+		}
+		var d = new Date();
+		var ms = d.getTime();
+		startTime = ms;
+
+		loadImg(url).then( img => {
+			if(img.width < 30){
+				img = kinImg;
+			}
+			makeSpinner(80, 80, img).then( spinner => {
+				var prizeShuffle = [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 2, 2, 3, 5];
+
+				shuffle(prizeShuffle);
+				makeWheel(200, 200, 12, prizeShuffle).then( wheel => {
+					var spinned = spinSpinner(spinner, wheel, prizeShuffle);
+					var stream = spinned.stream;
+					var attachment = new Discord.Attachment(stream, 'spin.gif');
+					kinoko.pretzelSpin.spins += 1;
+
+					var prize = spinned.choice;
+					var pay = Math.floor(prize * bet);
+					var bonus = 0;
+					if(all == true){
+						bonus = Math.floor(pay * 0.25);
+					}
+					var income = bet - pay - bonus;
+					kinoko.pretzelSpin.income += Math.max(0, income);
+					kinoko.pretzelSpin.outcome += pay;
+
+					bank.addItemUser(user, 'Ujin Currency', pay + bonus);
+					
+					if(all == false){
+						channel.send(endTime - startTime + 'ms. ' + user + spinned.choice + 'x You risked ' + bet + pEmoji + ' and won ' + pay + pEmoji, attachment);
+					}else{
+						channel.send(endTime - startTime + 'ms. ' + user + spinned.choice + 'x You risked all ' + bet + pEmoji + ' for an extra **25%** prize bonus, and won ' + pay + pEmoji + ' and a bonus of ' + bonus + pEmoji + '!!', attachment);
+					}
+				});
+
+			});
+
+		});
+
+	}else{
+		channel.send("Nibba you don't have that much.")
+	}
 }

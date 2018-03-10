@@ -286,13 +286,13 @@ exports.AAA = function(message){
 
 	loadImg(url).then( img => {
 		var avatar = img;
-		var stream = scream(avatar, 50);
+		var stream = scream(avatar, 50, message.content.length - 1);
 		var attachment = new Discord.Attachment(stream, 'test.gif');
 		message.channel.send(endTime - startTime + 'ms', attachment);
 	})
 }
 
-function scream(avatar, frames){
+function scream(avatar, frames, length){
 	var width = avatar.width;
 	var height = avatar.height;
 	var canvas = new Canvas(width, height);
@@ -306,7 +306,7 @@ function scream(avatar, frames){
 	encoder.setTransparent(0x36393e);
 	ctx.save();
 	var text = "A";
-	var intensity = 1;
+	var intensity = 1 * length/3;
 	var scale = 1;
 	for(var i = 0; i < frames; i++){
 		intensity += 0.1;

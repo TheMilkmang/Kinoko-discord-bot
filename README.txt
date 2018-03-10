@@ -104,10 +104,12 @@ Cee-Lo
 c]bet <bet>				Starts a game and places a bet. You can lose up to twice this amount if you roll a 1-2-3 or someone rolls a 4-5-6! 
 c]roll					Makes your roll
 
+pc]bet <bet>			Bets pretzels. You can lose up to twice this amount if you roll a 1-2-3 or someone rolls a 4-5-6! 
+pc]roll 				rolls your pretzel bet
 
 https://en.wikipedia.org/wiki/Cee-lo 
 
-Everyone takes a turn rolling the dice. You have up to 3 rolls to get a valid roll. If you don't then your score is 0. The only way you can win with a 0 is if someone rolls a 1-2-3 and has to pay double. I'll put the score chart below. Everybody rolls, if there's a tie then tied players reroll. The winner wins everyone's bets up to the amount that they wagered (so if you bet 100 and your opponent bet 500, you only get 100 of thir bet) 
+Everyone takes a turn rolling the dice. You have up to 3 rolls to get a valid roll. Highest roll wins! You can lose up to DOUBLE your bet.
 
 Valid Rolls:
 
@@ -117,16 +119,19 @@ point		A point is scored by rolling 2 dice of the same number, and then the one 
 1-2-3		The lowest you can roll. You pay double!! 
 
 ---------------------------------
-]spin choice1;choice 2	Spins a wheel to help you decide! Input as many choices as you want separated by ;
-
-]avatar					This feature was just to test some things. Makes your avatar rotate.
-
 
 ]bs #m 					Bet Spins # mushrooms. Minimum bet of 100. Max of 10,000.
+]bs ALLm				Bets all your mushrooms in a last ditch effort of winning. Multipliers are doubled.
 
 ---------------------------------
+]spin choice1;choice 2	Spins a wheel to help you decide! Input as many choices as you want separated by ;
 
+]avatar					like, you're spinning, man
+]sinavatar				ooo wavy
+]tunnel					whoa man it's like a tunnel of YOU
+]aaa 					AAAAAAAAAAAAAAAA
 
+---------------------------------
 
 DONATE
 

@@ -393,6 +393,10 @@ bot.on('message', message => {
 		sendMessage(message.channel, spin.mSpinStats());
 	}
 
+	if(message.content.startsWith(']pspinstats')){
+		sendMessage(message.channel, spin.pSpinStats());
+	}
+
 	if(message.content.startsWith(']sinavatar')){
 		avatar.sin(message);
 	}
