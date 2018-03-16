@@ -161,6 +161,20 @@ exports.getRichest = function(amount){
 	return returned;
 };
 
+exports.pretzelCirculation = function(){
+	var total = 0;
+	for(var i = 0; i < bank.length; i++){
+		if(bank[i].hasOwnProperty('inventory')){
+			for(var j = 0; j < bank[i].inventory.length; j++){
+				if(bank[i].inventory[j].name == 'Ujin Currency'){
+					total += bank[i].inventory[j].amount;
+				}
+			}
+		}
+	}
+	return total;
+}
+
 exports.getItemRichest = function(amount, item){
 	
 };
@@ -280,7 +294,7 @@ exports.claimPretzelInterest = function(message){
 	if(exports.getItemBalanceUser(message.author, "Ujin Currency") >= 1){
 			
 		if(interestTimeLeft(message.author) <= 0){
-			var interest = Math.floor(balance * config.interestRate);
+			var interest = Math.min(Math.floor(balance * config.interestRate), 300);
 		}else{
 			message.channel.send(message.author + "You already got your interest today! You can claim it again in " + interestTimeLeft(message.author)/3600000 + " hours.");
 			return;

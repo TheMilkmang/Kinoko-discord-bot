@@ -408,6 +408,10 @@ bot.on('message', message => {
 	if(message.content.startsWith(']AAA') || message.content.startsWith(']aaa')){
 		avatar.AAA(message);
 	}
+
+	if(message.content.startsWith(']circulation')){
+		sendMessage(message.channel, "Users have " + bank.pretzelCirculation() + config.ujinCurrency + ' stored in the Bank of Kinoko');
+	}
 });
 
 function sendMessage(channel, message){

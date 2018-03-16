@@ -109,6 +109,43 @@ exports.getAvatar = function(message){
 
 };
 
+
+function createGif(width, height, repeat, delay, quality, frames){
+	return new Promise(function(resolve, reject){
+		var canvas = new Canvas(width, height);
+		var ctx = canvas.getContext('2d');
+		var encoder = new GIFEncoder(width, height);
+		var stream = encoder.createReadStream();
+		var frame = 0;
+
+		encoder.start();
+		encoder.setRepeat(repeat);   // 0 for repeat, -1 for no-repeat
+		encoder.setDelay(delay);  // frame delay in ms 50ms is 20fps
+		encoder.setQuality(quality); // image quality. 10 is default.
+		encoder.setTransparent(0x36393e);
+
+		function animate(){
+
+			if(frame < frames.length){
+				ctx.putImageData(frames[frame], 0, 0);
+				encoder.addFrame(ctx);
+				frame += 1;
+
+				console.log("frame " + frame);
+				setTimeout(animate, 0);
+			}else{
+				encoder.finish();
+				var d = new Date();
+				var ms = d.getTime();
+
+				resolve({stream: stream, endTime: ms});
+			}
+		}
+		animate();
+	});
+}
+
+
 function makeTunnel(img, frames){
 	return new Promise(function(resolve, reject){
 		var width = img.width*2;
@@ -121,6 +158,13 @@ function makeTunnel(img, frames){
 		var buffer1 = canv2.getContext('2d');
 		var encoder = new GIFEncoder(width, height);
 		var stream = encoder.createReadStream();
+		var gifFrames = [];
+
+		encoder.start();
+		encoder.setRepeat(0);   // 0 for repeat, -1 for no-repeat
+		encoder.setDelay(100);  // frame delay in ms 50ms is 20fps
+		encoder.setQuality(20); // image quality. 10 is default.
+		encoder.setTransparent(0x36393e);
 
 		var distanceTable = new Array(height * 2);
 		for (var i = 0; i < height * 2 ; i++) {
@@ -132,13 +176,9 @@ function makeTunnel(img, frames){
 		  angleTable[i] = new Array(width * 2);
 		}
 
-		encoder.start();
-		encoder.setRepeat(0);   // 0 for repeat, -1 for no-repeat
-		encoder.setDelay(100);  // frame delay in ms 50ms is 20fps
-		encoder.setQuality(20); // image quality. 10 is default.
-		encoder.setTransparent(0x36393e);
-
 		buffer1.drawImage(img, 0, 0, texWidth, texHeight);
+		buffer1Data = buffer1.getImageData(0, 0, texWidth, texHeight).data;
+
 		for(var y = 0; y < height * 2; y++){
 			for(var x = 0; x < width * 2; x++){
 				var ratio = 32;
@@ -149,11 +189,12 @@ function makeTunnel(img, frames){
 				//console.log("disttable " + distanceTable[y][x] + ' angtable ' + angleTable[y][x] + 'x: ' + x + 'y: ' + y);
 			}
 		}
+		var color = ctx.createImageData(1,1);
+		var draw = ctx.getImageData(0, 0, width, height);
 		console.log("test?");
 		var animation = 2;
 		var shiftX;
 		var ShiftY;
-		var color;
 	    var shiftLookX;
 	    var shiftLookY;
 
@@ -164,11 +205,12 @@ function makeTunnel(img, frames){
 					shiftY = Math.round(texHeight * 0.25 * animation);
 					shiftLookX = width / 2 + Math.round(width / 2 * Math.sin(animation*1.1));
 					shiftLookY = height / 2 + Math.round(height / 2 * Math.sin(animation));
+
+					
 					for(var y = 0; y < height; y++){
 						for(var x = 0; x < width; x++){
 							//console.log("or here?");
 						  //get the texel from the texture by using the tables, shifted with the animation values
-						  //color = buffer1.getImageData(50, 50, 1, 1);
 						  var calcX = Math.round((distanceTable[x + shiftLookX][y + shiftLookY] + shiftX)  % texWidth);
 						  var calcY = Math.round((angleTable[x + shiftLookX][y + shiftLookY] + shiftY) % texHeight);
 						  if(calcX < 0){
@@ -177,24 +219,30 @@ function makeTunnel(img, frames){
 						  if(calcY < 0){
 						  	calcY += height*2;
 						  }
-						   //console.log('calcX: ' + calcX + 'calcY: ' + calcY);
-						  color = buffer1.getImageData(calcX, calcY , 1, 1);
-						  ctx.putImageData(color, x, y)
+						  var dataPx = (x + width * y)*4 - 4;
+
+						  var px = (calcX + texWidth * calcY)*4 - 4;
+						  draw.data[dataPx] = buffer1Data[px];
+						  draw.data[dataPx+1] = buffer1Data[px+1];
+						  draw.data[dataPx+2] = buffer1Data[px+2];
+						  draw.data[dataPx+3] = buffer1Data[px+3];
+						  
 						}
 					}
+					ctx.putImageData(draw, 0, 0)
 					encoder.addFrame(ctx);
 					animation += 0.1;
 					i++;
 					tunnelAnime(i);
 				}else{
+					console.log("frames length " + gifFrames.length);
 					encoder.finish();
 					var d = new Date();
 					var ms = d.getTime();
 					endTime = ms;
-					console.log("tunnel made");
 					resolve(stream);
 				}
-			}, 20)
+			}, 0)
 		}
 		console.log("tunnel anime starting");
 		tunnelAnime(0);
