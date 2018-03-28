@@ -146,19 +146,19 @@ function spinSpinner(spinner, wheel, choices){
 	var ctx = canvas.getContext('2d');
 	var encoder = new GIFEncoder(width, height);
 	var stream = encoder.createReadStream();
-	var frames = 15;
+	var frames = 30;
 	encoder.start();
 	encoder.setRepeat(-1);   // 0 for repeat, -1 for no-repeat
-	encoder.setDelay(60);  // frame delay in ms 50ms is 20fps
+	encoder.setDelay(50);  // frame delay in ms 50ms is 20fps
 	encoder.setQuality(10); // image quality. 10 is default.
 	encoder.setTransparent(0x36393e);
 	ctx.save();
-	var spin = Math.round(Math.random() * 3600 + 360)/frames;
+	var spin = Math.round(Math.random() * 1800 + 360)/frames;
 
 	var rotation = -90;
 	for(var i = 1; i < frames + 1; i++){
 		ctx.resetTransform();
-		ctx.clearRect(0,0,width,height);
+		ctx.clearRect(0,0,canvas.width,canvas.height);
 		ctx.drawImage(wheel, 0, 0);
 		ctx.translate(canvas.width/2, canvas.height/2);
 		ctx.rotate((spin*i)*Math.PI/180);
@@ -330,9 +330,9 @@ function mushroomSpin(channel, user, bet, all){
 					bank.addItemUser(user, 'mushrooms', pay);
 					
 					if(all == false){
-						channel.send(endTime - startTime + 'ms. ' + user + spinned.choice + 'x You risked ' + bet + ' and won ' + pay + ':mushroom:! The jackpot is now ' + kinoko.mushroomSpin.jp + ':mushroom:', attachment);
+						channel.send(endTime - startTime + 'ms. ' + user.username + ' ' + spinned.choice + 'x You risked ' + bet + ' and won ' + pay + ':mushroom:! The jackpot is now ' + kinoko.mushroomSpin.jp + ':mushroom:', attachment);
 					}else{
-						channel.send(endTime - startTime + 'ms. ' + user + spinned.choice + 'x You risked all ' + bet + ':mushroom: for a chance at double the payout and won ' + pay + ':mushroom:! The jackpot is now ' + kinoko.mushroomSpin.jp + ':mushroom:', attachment);
+						channel.send(endTime - startTime + 'ms. ' + user.username + ' ' + spinned.choice + 'x You risked all ' + bet + ':mushroom: for a chance at double the payout and won ' + pay + ':mushroom:! The jackpot is now ' + kinoko.mushroomSpin.jp + ':mushroom:', attachment);
 					}
 				});
 
@@ -387,16 +387,15 @@ function pretzelSpin(channel, user, bet, all){
 					if(all == true){
 						bonus = Math.floor(pay * 0.25);
 					}
-					var income = bet - pay - bonus;
-					kinoko.pretzelSpin.income += Math.max(0, income);
-					kinoko.pretzelSpin.outcome += pay;
+					kinoko.pretzelSpin.income += bet;
+					kinoko.pretzelSpin.outcome += pay + bonus;
 
 					bank.addItemUser(user, 'Ujin Currency', pay + bonus);
 					
 					if(all == false){
-						channel.send(endTime - startTime + 'ms. ' + user + spinned.choice + 'x You risked ' + bet + pEmoji + ' and won ' + pay + pEmoji, attachment);
+						channel.send(endTime - startTime + 'ms. ' + user.username + ' ' + spinned.choice + 'x You risked ' + bet + pEmoji + ' and won ' + pay + pEmoji, attachment);
 					}else{
-						channel.send(endTime - startTime + 'ms. ' + user + spinned.choice + 'x You risked all ' + bet + pEmoji + ' for an extra **25%** prize bonus, and won ' + pay + pEmoji + ' and a bonus of ' + bonus + pEmoji + '!!', attachment);
+						channel.send(endTime - startTime + 'ms. ' + user.username + ' ' + spinned.choice + 'x You risked all ' + bet + pEmoji + ' for an extra **25%** prize bonus, and won ' + pay + pEmoji + ' and a bonus of ' + bonus + pEmoji + '!!', attachment);
 					}
 				});
 

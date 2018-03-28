@@ -110,7 +110,7 @@ exports.sendMushies = function(fromUser, toUser, amount){
 	if(amount > 0){
 		if(exports.subtractBalanceUser(fromUser, amount)){
 			if(exports.addBalanceUser(toUser, amount)) return true;
-		}else return -1;
+		}else return false;
 	}
 };
 

@@ -109,43 +109,6 @@ exports.getAvatar = function(message){
 
 };
 
-
-function createGif(width, height, repeat, delay, quality, frames){
-	return new Promise(function(resolve, reject){
-		var canvas = new Canvas(width, height);
-		var ctx = canvas.getContext('2d');
-		var encoder = new GIFEncoder(width, height);
-		var stream = encoder.createReadStream();
-		var frame = 0;
-
-		encoder.start();
-		encoder.setRepeat(repeat);   // 0 for repeat, -1 for no-repeat
-		encoder.setDelay(delay);  // frame delay in ms 50ms is 20fps
-		encoder.setQuality(quality); // image quality. 10 is default.
-		encoder.setTransparent(0x36393e);
-
-		function animate(){
-
-			if(frame < frames.length){
-				ctx.putImageData(frames[frame], 0, 0);
-				encoder.addFrame(ctx);
-				frame += 1;
-
-				console.log("frame " + frame);
-				setTimeout(animate, 0);
-			}else{
-				encoder.finish();
-				var d = new Date();
-				var ms = d.getTime();
-
-				resolve({stream: stream, endTime: ms});
-			}
-		}
-		animate();
-	});
-}
-
-
 function makeTunnel(img, frames){
 	return new Promise(function(resolve, reject){
 		var width = img.width*2;
@@ -392,3 +355,40 @@ function scream(avatar, frames, length){
 	return stream;
 
 }
+
+exports.slideText = function(message){ //]slide <text>
+	var msg = message.content.slice(7);
+	var width = 250;
+	var height = 30;
+	var canvas = new Canvas(width, height);
+	var ctx = canvas.getContext('2d');
+	var encoder = new GIFEncoder(width, height);
+	var stream = encoder.createReadStream();
+	var frames = 100;
+
+	var d = new Date();
+	var ms = d.getTime();
+	startTime = ms;
+
+	encoder.start();
+	encoder.setRepeat(0);   // 0 for repeat, -1 for no-repeat
+	encoder.setDelay(40);  // frame delay in ms 50ms is 20fps
+	encoder.setQuality(1); // image quality. 10 is default.
+	encoder.setTransparent(0x36393e);
+
+	ctx.fillStyle = '#bfc0c1';
+	ctx.font =  "12px Whitney Light";
+	var txtWidth = ctx.measureText(msg).width;
+	for(var i = 0; i < frames; i++){
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		ctx.fillText(msg, i*3 - txtWidth/2, height/2);
+		encoder.addFrame(ctx);
+	}
+	encoder.finish();
+	var d = new Date();
+	var ms = d.getTime();
+	endTime = ms;
+
+	var attachment = new Discord.Attachment(stream, 'test.gif');
+	message.channel.send('', attachment);
+};

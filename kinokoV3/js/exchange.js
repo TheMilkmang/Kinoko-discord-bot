@@ -87,6 +87,8 @@ function recordOrder(order, amount, type){
 	console.log("order recorded:\n" + order);
 }
 
+
+
 function fillSellOrder(index, quantity){
 	console.log("Filling Sell Order with index " + index + " filling quantity: " + quantity + " The sell order quantity is: " + sellOrders[index].quantity);
 	
@@ -137,7 +139,27 @@ function fillBuyOrder(index, quantity, price){
 	console.log("buy order filled");
 }
 
+function userSellOrders(user){
+	var num = 0;
+	sellOrders.forEach( element => {
+		if(element.userID == user.id){
+			num += 1;
+		}
+	});
+	console.log('sell orders: ' + num)
+	return num;
+}
 
+function userBuyOrders(user){
+	var num = 0;
+	buyOrders.forEach( element => {
+		if(element.userID == user.id){
+			num += 1;
+		}
+	});
+	console.log('buy orders:' + num);
+	return num;
+}
 
 exports.createBuyOrder = function(user, item, quantity, price){
 	price = Math.floor(price);
@@ -145,6 +167,10 @@ exports.createBuyOrder = function(user, item, quantity, price){
 	
 	quantity = Math.floor(quantity);
 	if(quantity <= 0) return false;
+	
+	if(userBuyOrders(user) >= 4){
+		return false;
+	}
 	
 	var total = price*quantity;
 	
@@ -163,6 +189,10 @@ exports.createSellOrder = function(user, item, quantity, price){
 	quantity = Math.floor(quantity);
 	if(quantity <= 0) return false;
 	
+	if(userSellOrders(user) >= 4){
+		return false;
+	}
+
 	if(bank.getItemBalanceUser(user, item) < quantity) return false;
 	
 	bank.subtractItemUser(user, item, quantity);
@@ -244,13 +274,19 @@ exports.getHistory = function(amount){
 
 exports.getSellOrders = function(start, amount){
 	var returned = "**Sell Orders:** ";
+	var emoji;
 	amount = Math.min(amount, sellOrders.length);
 	start = Math.min(start, sellOrders.length-1);
 
 	if(sellOrders.length == 0) return(returned);
 	
 	for(var i = start; i < amount; i++){
-		returned = returned + "\n **Item**: " + sellOrders[i].item + "    **Quantity**: " + sellOrders[i].quantity + "    **Price Each**: " + sellOrders[i].price + config.currency + "    " + sellOrders[i].username;
+		if(sellOrders[i].item == "Ujin Currency"){
+			emoji = config.ujinCurrency;
+		}else{
+			emoji = sellOrders[i].item;
+		}
+		returned = returned + "\n **Item**: " + emoji + "    **Quantity**: " + sellOrders[i].quantity + "    **Price Each**: " + sellOrders[i].price + config.currency + "    " + sellOrders[i].username;
 	}
 	
 	return(returned);
@@ -258,13 +294,19 @@ exports.getSellOrders = function(start, amount){
 
 exports.getBuyOrders = function(start, amount){
 	var returned = "**Buy Orders:** ";
+	var emoji;
 	amount = Math.min(amount, buyOrders.length);
 	start = Math.min(start, buyOrders.length-1);
 
 	if(buyOrders.length == 0) return(returned);
 	
 	for(var i = start; i < amount; i++){
-		returned = returned + "\n **Item**: " + buyOrders[i].item + "    **Quantity**: " + buyOrders[i].quantity + "    **Price Each**: " + buyOrders[i].price + config.currency + "    " + buyOrders[i].username;
+		if(buyOrders[i].item == "Ujin Currency"){
+			emoji = config.ujinCurrency;
+		}else{
+			emoji = buyOrders[i].item;
+		}
+		returned = returned + "\n **Item**: " + emoji + "    **Quantity**: " + buyOrders[i].quantity + "    **Price Each**: " + buyOrders[i].price + config.currency + "    " + buyOrders[i].username;
 	}
 	
 	return(returned);

@@ -8,7 +8,6 @@ var work = require('./js/work.js');
 var save = require('./js/save.js');
 var bomb = require('./js/bomb.js');
 var balloon = require('./js/balloon.js');
-var waifu = require('./js/waifu.js');
 var exchange = require('./js/exchange.js');
 var tts = require('./js/tts.js');
 var ceelo = require('./js/ceelo.js');
@@ -20,6 +19,7 @@ var bellpost;
 var chanGeneral;
 var trashpost;
 var cgame;
+var pcgame;
 
 const bot = new Discord.Client();
 
@@ -29,9 +29,9 @@ bot.on('ready', () => {
 	console.log('I am ready!');
 	
 	botpost = bot.channels.get(config.botPostID);
-	bellpost = bot.channels.get(config.bellPostID);
+	bellpost = bot.channels.get('284089416341913600');
 	chanGeneral = bot.channels.get(config.generalID);
-	trashpost = bot.channels.get('197198331817099266');
+	trashpost = botpost;//bot.channels.get('197198331817099266');
 	cgame = new ceelo.Ceelo(botpost, {name: "mushrooms", emoji: ":mushroom:"}, 5);
 	pcgame = new ceelo.Ceelo(botpost, {name: "Ujin Currency", emoji: "<:pretzel:363385221976162304>"}, 5);	
 	chanGeneral.fetchMessages({ limit: 15 })
@@ -63,18 +63,17 @@ bot.on('message', message => {
 		if (message.author.id === config.ujinbotID){
 			checkUjinMessage(message);
 		}
+		return;
 	}
 
 	if(message.content.startsWith("]lang ")){
 		var newLang = message.content.slice(6);
 		message.author.langCode = newLang;
+		return;
 	}
 	
 	if(message.channel === botpost && !message.author.bot){
-		
 		tts.spamTTS(message);
-
-		
 	}
 	
 	if(message.channel === chanGeneral && !message.author.bot){
@@ -99,29 +98,35 @@ bot.on('message', message => {
 	
 	if (message.content == ']test') {
 		sendMessage(message.channel, 'toast');
+		return;
 	}
 	
 	if(message.content == ']help') {
 		sendMessage(message.channel, "Here's my documentation, officer. <https://github.com/meeseekms/Kinoko-discord-bot/blob/master/README.txt>");
+		
 	}
 	
 	if(message.content.startsWith(']addMethod ')) {
 		sendMessage(message.channel, kms.add(message, "method"));
+		return;
 	}
 	
 	if(message.content.startsWith(']addSuccess ')){
 		sendMessage(message.channel, kms.add(message, "success"));
+		return;
 	}
 	
 	if(message.content.startsWith(']addFail ')){
 		sendMessage(message.channel, kms.add(message, "fail"));
+		return;
 	}
 	
 	if (message.content.startsWith(']kms')) {
 		sendMessage(message.channel, kms.attemptSuicide(message.author));
+		return;
 	}
 	
-	if(message.content.startsWith(']mushies') || message.content.startsWith(']m')){
+	if(message.content.startsWith(']mushies') || message.content.startsWith(']m ') || message.content == ']m'){
 		
 		var balance = bank.getBalanceUser(message.author);
 		
@@ -132,34 +137,42 @@ bot.on('message', message => {
 		}
 		
 		sendMessage(message.channel, "You have " + balance.toLocaleString() + config.currency);
+		return;
 	}
 	
 	if(message.content.startsWith(']send ')){
 		sendMushies(message);
+		return;
 	}
 	
 	if(message.content.startsWith(']work') || message.content == ']w'){
 		sendMessage(message.channel, work.mushiesWork(message.author));
+		return;
 	}
 	
 	if(message.content.startsWith(']top')){
 		topWorkers(message);
+		return;
 	}
 	
 	if(message.content.startsWith(']laziest')){
 		leastWorked(message);
+		return;
 	}
 
 	if(message.content.startsWith(']greediest')){
 		greediest(message);
+		return;
 	}
 
 	if(message.content.startsWith(']poorest')){
 		poorest(message);
+		return;
 	}
 		
 	if(message.content.startsWith(']totalWorked')){
 		sendMessage(message.channel, message.author.username + " has earned a total of " + bank.getTotalWorkedUser(message.author) + config.currency + " for their kingdom. Good job, comrade.");
+		return;
 	}
 	
 	if(message.content.startsWith(']bf ALL ')){
@@ -169,11 +182,13 @@ bot.on('message', message => {
 	
 	if(message.content.startsWith(']bf ')){
 		sendMessage(message.channel, flip.betFlip(message, bank));
+		return;
 	}
 	
 	
 	if(message.content.startsWith(']population')){
 		sendMessage(message.channel, "The " + config.currency + " kingdom has " + bank.getPopulation() + " members! Go tell everyone you know to do `]mushies` to increase the population!");
+		return;
 	}
 	
 	if(message.content.startsWith(']harvest') || message.content == ']h' || message.content.startsWith(']h ')){
@@ -186,71 +201,87 @@ bot.on('message', message => {
 			}else return;
 		}
 		sendMessage(message.channel, work.harvest(message.author, choice));
+		return;
 	}
 	
 	if(message.content == ']bomb'){
 		sendMessage(message.channel, bomb.printBomb());
+		return;
 	}
 	if(message.content == ']balloon'){
 		sendMessage(message.channel, balloon.printBalloon(bank));
+		return;
 	}
 	if(message.content == ']buyballoon'){
 		sendMessage(message.channel, balloon.buyBalloon(bank, message.channel, message.author));
+		return;
 	}
 	if(message.content == ']buybomb'){
 		sendMessage(message.channel, bomb.buyBomb(bank, message.author));
-	}
-	
-	if(message.content == ']normie join'){
-		normie.normieJoin(message);
-	}
-	
-	if(message.content == ']egg'){
-		sendMessage(message.channel, "An egg costs " + waifu.getPrice() + config.currency);
-	}
-	
-	if(message.content == ']buyegg'){
-		if(bank.subtractBalanceUser(message.author, waifu.getPrice())){
-		   sendMessage(botpost, waifu.buyEgg(message));
-		}
-	}
-	
-	if(message.content == ']waifus'){
-		sendMessage(botpost, waifu.getInventory(message.author));
+		return;
 	}
 	
 	if(message.content.startsWith(']setgame ')){
 	   	var str = message.content.slice(9);
 		bot.user.setPresence({ game: { name: str, type: 0 } });
 		console.log("\nsetting game: " + str);
+		return;
+	}
+
+	if(message.content.startsWith(']setstream ')){
+		var str = message.content.slice(11);
+		bot.user.setPresence({game: {name: str, type: 1} });
+		console.log("setting stream: " + str);
+		return;
+	}
+
+	if(message.content.startsWith(']setlisten ')){
+		var str = message.content.slice(11);
+		bot.user.setPresence({game: {name: str, type: 2} });
+		console.log("setting listen: " + str);
+		return;
+	}
+
+	if(message.content.startsWith(']setwatch ')){
+		var str = message.content.slice(10);
+		bot.user.setPresence({game: {name: str, type: 3} });
+		console.log("setting watch: " + str);
+		return;
 	}
 	
 	if(message.content === "]pretzels" || message.content === "]p"){
 		sendMessage(message.channel, "You have " + bank.getItemBalanceUser(message.author, "Ujin Currency") + config.ujinCurrency);
+		return;
 	}
 	
 	if(message.content.startsWith(']withdraw ')){
 	   withdrawPretzels(message);
+	   return;
 	}
 	
 	if(message.content == ']sellp' || message.content == ']buyp'){
 		sendMessage(message.channel, "Hi! The command to buy or sell pretzels on the exchange is ]buyp <quantity> <price> or ]sellp <quantity> <price>. To see related commands do ]help");
+		return;
 	}
 	
 	if(message.content.startsWith(']sellp ')){
 		sellPretzels(message);
+		return;
 	}
 	
 	if(message.content.startsWith(']buyp ')){
 		buyPretzels(message);
+		return;
 	}
 	
 	if(message.content === "]sellorders"){
 		sendMessage(message.channel, exchange.getSellOrders(0, 50));
+		return;
 	}
 	
 	if(message.content === "]buyorders"){
 		sendMessage(message.channel, exchange.getBuyOrders(0, 50));
+		return;
 	}
 	
 	if(message.content.startsWith("]history ")){
@@ -264,49 +295,54 @@ bot.on('message', message => {
 				sendMessage(message.channel, exchange.getHistory(choice));
 			}
 		}
+		return;
 	}
 	
 	if(message.content == "]history"){
 		sendMessage(message.channel, exchange.getHistory(5));
+		return;
 	}
 	
 	if(message.content == "]removesells"){
 		exchange.removeAllSellOrdersUser(message.author);
 		sendMessage(message.channel, "If you had any open sell orders, they've been just been revoked!");
+		return;
 	}
 	
 	if(message.content == "]removebuys"){
 		exchange.removeAllBuyOrdersUser(message.author);
 		sendMessage(message.channel, "If you had any open buy orders, they've just been revoked!");
+		return;
 	}
 	
 	if(message.content === "]joinVC"){
 		tts.joinVC(message);
-		
+		return;
 	}
 	
 	if(message.content === "]quitVC"){
 		tts.quitVC(message);
+		return;
 	}
 	
 	if(message.content.startsWith("]userTTS")){
 		tts.toggleUserTTS(message);
+		return;
 	}
 	
 	if(message.content.startsWith("]generalTTS")){
 		tts.toggleGenTTS(message);
+		return;
 	}
 	
 	if(message.content.startsWith("]spamTTS")){
 		tts.toggleSpamTTS(message);
+		return;
 	}
 
 	if(message.content.startsWith("]tts ")){
 		tts.userTTS(message);
-	}
-	
-	if(message.content.startsWith("]ttss ")){
-	   tts.userTTSSpeed(message);
+		return;
 	}
 	
 	if(message.content === "]mylang"){
@@ -314,14 +350,12 @@ bot.on('message', message => {
 			message.author.langCode = 'en';
 		}
 		message.reply("Your current lang is: " + message.author.langCode);
+		return;
 	}
 	
 	if(message.content.startsWith("]dec ")){
 		tts.decTTS(message);
-	}
-	
-	if(message.content.startsWith("]echo ")){
-	   tts.echoTTS(message);
+		return;
 	}
 	
 	if(message.content.startsWith("c]bet")){
@@ -331,14 +365,17 @@ bot.on('message', message => {
 		var bet = Math.round(parseInt(args[1]));
 		if(bet <= 0) return;
 		cgame.makeBet(message.author, bet);
+		return;
 	}
 	
 	if(message.content == "c]roll"){
 		cgame.makeRoll(message.author);
+		return;
 	}
 	
 	if(message.content == "c]stats"){
 		cgame.getStats();
+		return;
 	}
 	
 	if(message.content.startsWith("pc]bet")){
@@ -348,49 +385,53 @@ bot.on('message', message => {
 		var bet = Math.round(parseInt(args[1]));
 		if(bet <= 0) return;
 		pcgame.makeBet(message.author, bet);
+		return;
 	}
 	
 	if(message.content == "pc]roll"){
 		pcgame.makeRoll(message.author);
+		return;
 	}
 	
 	if(message.content == "pc]stats"){
 		pcgame.getStats();
-	}
-	
-	if(message.content == "]timely"){
-		sendMessage(message.channel, ".timely");
+		return;
 	}
 	
 	if(message.content.startsWith("]interest")){
 		bank.claimPretzelInterest(message);
+		return;
 	}
 	
 	if(message.content.startsWith("]totalInt")){
 	   bank.getTotalInterest(message);
+	   return;
 	}
 	
 	if(message.content.startsWith(']flipStats')){
 		var stats = flip.getFlipStats();
 		sendMessage(message.channel, "Kinoko has hosted " + stats.flips + " flips, and made a profit of " + stats.profit.toLocaleString() + config.currency + " from bet flips. Income: " +  stats.income.toLocaleString() + " Payout: " + stats.payout.toLocaleString());
+		return;
 	}
 	
 	if(message.content == ']avatar'){
 		avatar.getAvatar(message);
-
+		return;
 	}
 	
 	if(message.content.startsWith(']spin ')){
 		spin.spinChoose(message);
-		console.log(bot.user.avatarURL);
+		return;
 	}
 
 	if(message.content.startsWith(']bs ')){
 		spin.betSpin(message);
+		return;
 	}
 
 	if(message.content.startsWith(']mspinstats')){
 		sendMessage(message.channel, spin.mSpinStats());
+		return;
 	}
 
 	if(message.content.startsWith(']pspinstats')){
@@ -399,18 +440,27 @@ bot.on('message', message => {
 
 	if(message.content.startsWith(']sinavatar')){
 		avatar.sin(message);
+		return;
 	}
 
 	if(message.content.startsWith(']tunnel')){
 		avatar.tunnelAvatar(message);
+		return;
 	}
 
 	if(message.content.startsWith(']AAA') || message.content.startsWith(']aaa')){
 		avatar.AAA(message);
+		return;
 	}
 
 	if(message.content.startsWith(']circulation')){
 		sendMessage(message.channel, "Users have " + bank.pretzelCirculation() + config.ujinCurrency + ' stored in the Bank of Kinoko');
+		return;
+	}
+
+	if(message.content.startsWith(']slide ')){
+		avatar.slideText(message);
+		return;
 	}
 });
 
@@ -597,19 +647,6 @@ function buyPretzels(message){
 		sendMessage(message.channel, "Something isn't right...");
 	}
 }
-
-
-
-
-function update(){
-	var message = waifu.updateAll();
-	if(message){
-		sendMessage(botpost, message);
-	}
-	setTimeout(update, 60000);
-}
-//setTimeout(update, 60000);
-
 bot.login(config.token);
 
 exchange.bot = bot;
